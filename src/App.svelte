@@ -1,23 +1,11 @@
 <script>
-  import Cell from './Cell.svelte';
-  import Table from './Table.svelte';
+  import Cell from './components/Cell.svelte';
+  import Table from './components/Table.svelte';
   import { tableConfigs, renamingCell, selectedCells, leftTableStore, middleTableStore, mainTableStore } from './stores/tableStore';
   import { CELL_STATES } from './constants';
+  import Header from './components/Header.svelte';
+  import HeaderButton from './components/HeaderButton.svelte';
   
-  // Create arrays for rows and columns for all tables
-  const mainTableRows = Array.from({ length: 21 }, (_, i) => i);
-  const mainTableColumns = Array.from({ length: 10 }, (_, i) => i);
-  const mainTableColumnRowCounts = [10, 7, 7, 7, 7, 7, 10, 21, 21, 21];
-  const leftTableRows = Array.from({ length: 21 }, (_, i) => i);
-  const leftTableColumns = Array.from({ length: 5 }, (_, i) => i);
-  const middleTableRows = Array.from({ length: 7 }, (_, i) => i);
-  const middleTableColumns = Array.from({ length: 2 }, (_, i) => i);
-
-  // Table names
-  const leftTableName = "Cytomat5";
-  const middleTableName = "Cytomat2";
-  const mainTableName = "Cytomat10 Hotel";
-
   // Track which cell is being renamed
   function handleStartRenaming(event) {
     const { cellKey } = event.detail;
@@ -129,73 +117,43 @@
     // Clear selection
     selectedCells.set(new Set());
   }
+
+  // Create an array of table configs for rendering
+  const tableOrder = ['left', 'middle', 'main'];
+  const tableGridColumns = '5fr 2fr 10fr';
 </script>
 
-<main class="h-screen bg-sky-50 p-0 flex flex-col overflow-hidden">
-  <header class="h-[52px] bg-white shadow-sm fixed top-0 left-0 right-0 z-10">
-    <div class="h-full flex items-center justify-between px-4">
-      <h1 class="text-xl font-semibold">Lab Tool</h1>
-      <button
-        class="px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        on:click={handleLinkCells}
-        disabled={!canLinkCells}
-      >
-        Link Selected Cells ({$selectedCells.size})
-      </button>
-    </div>
-  </header>
+<main class="h-screen bg-sky-50 p-0 flex flex-col overflow-auto">
+  <Header title="Lab Tool">
+    <HeaderButton
+      slot="header-button"
+      onClick={handleLinkCells}
+      disabled={!canLinkCells}
+      count={$selectedCells.size}
+    />
+  </Header>
 
-  <div class="flex-1 flex flex-col justify-end pt-[52px] overflow-hidden">
-    <div class="h-[calc(100vh-52px)] overflow-x-auto w-full p-4">
-      <div class="tables-row" style="display: grid; grid-template-columns: 5fr 2fr 10fr; gap: 16px; min-width: 1200px; align-items: end; height: 100%;">
-        <!-- Left Table: 21 rows, 5 columns -->
+  <div class="flex-1 flex flex-col justify-end pt-20 p-5">
+    <div class="tables-row" style={`display: grid; grid-template-columns: ${tableGridColumns}; gap: 16px; min-width: 1200px; align-items: end; height: 100%;`}>
+      {#each tableOrder as key}
         <div class="h-full flex flex-col justify-end">
           <Table
-            rows={tableConfigs.left.rows}
-            columns={tableConfigs.left.columns}
+            rows={tableConfigs[key].rows}
+            columns={tableConfigs[key].columns}
             renamingCell={$renamingCell}
             handleStartRenaming={handleStartRenaming}
             on:stopRenaming={handleStopRenaming}
-            fridge="left"
-            tableName={tableConfigs.left.name}
+            fridge={key}
+            tableName={tableConfigs[key].name}
           />
         </div>
-        <!-- Middle Table: 7 rows, 2 columns -->
-        <div class="h-full flex flex-col justify-end">
-          <Table
-            rows={tableConfigs.middle.rows}
-            columns={tableConfigs.middle.columns}
-            renamingCell={$renamingCell}
-            handleStartRenaming={handleStartRenaming}
-            on:stopRenaming={handleStopRenaming}
-            fridge="middle"
-            tableName={tableConfigs.middle.name}
-          />
-        </div>
-        <!-- Main Table: 21 rows, 10 columns -->
-        <div class="h-full flex flex-col justify-end">
-          <Table
-            rows={tableConfigs.main.rows}
-            columns={tableConfigs.main.columns}
-            renamingCell={$renamingCell}
-            handleStartRenaming={handleStartRenaming}
-            on:stopRenaming={handleStopRenaming}
-            fridge="main"
-            tableName={tableConfigs.main.name}
-          />
-        </div>
-      </div>
+      {/each}
     </div>
   </div>
 </main>
 
 <style>
   /* Your component styles here */
-  .grid-cols-17 {
-    display: grid;
-    grid-template-columns: repeat(17, 1fr);
-  }
-
   :global(.table-container) {
     display: grid;
     width: 100%;
@@ -213,14 +171,6 @@
 
   :global(.table-container[data-columns="10"]) {
     grid-template-columns: repeat(10, minmax(0, 1fr));
-  }
-
-  :global(.cell) {
-    width: 100%;
-    height: 100%;
-    min-height: 32px;
-    max-height: 48px;
-    min-width: 0;
   }
 
   @media (max-width: 1300px) {

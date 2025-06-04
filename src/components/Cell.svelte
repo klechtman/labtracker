@@ -1,9 +1,9 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { CELL_STATES, COLORS } from './constants';
-  import { getCellState, getBorderStyle, getPaddingStyle, getHoverBgColor } from './utils/cellUtils';
-  import { renamingCell, selectedCells, leftTableStore, middleTableStore, mainTableStore } from './stores/tableStore';
-  import { hoveredGroup } from './stores/hoverStore';
+  import { CELL_STATES, COLORS } from '../constants';
+  import { getCellState, getBorderStyle, getPaddingStyle, getHoverBgColor } from '../utils/cellUtils';
+  import { renamingCell, selectedCells, leftTableStore, middleTableStore, mainTableStore } from '../stores/tableStore';
+  import { hoveredGroup } from '../stores/hoverStore';
 
   const dispatch = createEventDispatcher();
 
@@ -224,10 +224,12 @@
 </div>
 
 <style>
-  .cell {
+  :global(.cell) {
     width: 100%;
     height: 100%;
-    font-size: 12px;
+    min-height: 32px;
+    max-height: 48px;
+    min-width: 0;
   }
   .hover-bg {
     background-color: color-mix(in srgb, var(--hover-color) 20%, transparent);
