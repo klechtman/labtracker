@@ -5,6 +5,7 @@
   import { CELL_STATES } from './constants';
   import Header from './components/Header.svelte';
   import HeaderButton from './components/HeaderButton.svelte';
+  import RowNumber from './components/RowNumber.svelte';
   
   // Track which cell is being renamed
   function handleStartRenaming(event) {
@@ -130,6 +131,10 @@
     checkScreen();
     window.addEventListener('resize', checkScreen);
   }
+
+  // For row numbers
+  const maxRows = 21; // global, as per your requirement
+  $: globalRowNumbers = Array.from({ length: maxRows }, (_, i) => maxRows - i);
 </script>
 
 <main class="h-screen bg-sky-50 p-0 flex flex-col overflow-auto">
@@ -150,12 +155,14 @@
         min-width: ${isSmallScreen ? '0' : '1200px'};
         align-items: end;
         height: ${isSmallScreen ? 'auto' : '100%'};
-        grid-template-columns: ${isSmallScreen ? '5fr 2fr' : tableGridColumns};
+        grid-template-columns: ${isSmallScreen ? '32px 5fr 2fr' : '32px ' + tableGridColumns};
         grid-template-rows: ${isSmallScreen ? 'auto auto' : 'auto'};
       `}
     >
       {#if isSmallScreen}
-        <div class="h-full flex flex-col justify-end w-full min-w-0" style="grid-column: 1 / 2; grid-row: 1;">
+        <!-- Row numbers for the top row (left and middle tables) -->
+        <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" />
+        <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 2 / 3; grid-row: 1;">
           <Table
             rows={tableConfigs.left.rows}
             columns={tableConfigs.left.columns}
@@ -166,7 +173,7 @@
             tableName={tableConfigs.left.name}
           />
         </div>
-        <div class="h-full flex flex-col justify-end w-full min-w-0" style="grid-column: 2 / 3; grid-row: 1;">
+        <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 3 / 4; grid-row: 1;">
           <Table
             rows={tableConfigs.middle.rows}
             columns={tableConfigs.middle.columns}
@@ -177,7 +184,9 @@
             tableName={tableConfigs.middle.name}
           />
         </div>
-        <div class="h-full flex flex-col justify-end w-full min-w-0" style="grid-column: 1 / 3; grid-row: 2;">
+        <!-- Row numbers for the bottom row (main table) -->
+        <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" />
+        <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 2 / 4; grid-row: 2;">
           <Table
             rows={tableConfigs.main.rows}
             columns={tableConfigs.main.columns}
@@ -189,8 +198,10 @@
           />
         </div>
       {:else}
-        {#each tableOrder as key}
-          <div class="h-full flex flex-col justify-end w-full min-w-0">
+        <!-- Row numbers for the desktop layout -->
+        <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" />
+        {#each tableOrder as key, i}
+          <div class="h-full flex flex-col w-full min-w-0" style={`grid-column: ${i+2}; grid-row: 1;`}>
             <Table
               rows={tableConfigs[key].rows}
               columns={tableConfigs[key].columns}

@@ -1,9 +1,9 @@
 <script>
   import { createEventDispatcher, getContext } from 'svelte';
   import { CELL_STATES, COLORS } from '../constants';
-  import { getCellState, getBorderStyle, getPaddingStyle, getHoverBgColor, getCellClass, getCellStyle } from '../utils/cellUtils';
   import { renamingCell, selectedCells, leftTableStore, middleTableStore, mainTableStore } from '../stores/tableStore';
   import { hoveredGroup } from '../stores/hoverStore';
+  import { cn } from '../lib/utils';
 
   const dispatch = createEventDispatcher();
 
@@ -32,20 +32,98 @@
   // Enforce that outFridge can never be true when state is empty
   $: outFridge = state === CELL_STATES.EMPTY ? false : outFridge;
 
-  $: borderStyle = getBorderStyle(outFridge);
-  $: paddingStyle = getPaddingStyle(linked);
   $: groupHover = linked && $hoveredGroup === groupName;
-  $: hoverBgColor = getHoverBgColor(state, linked, groupHover);
+
+  // Helper to get the correct store by cellKey
+  function getStoreByCellKey(cellKey) {
+    const [fridge] = cellKey.split('-');
+    return fridge === 'left' ? leftTableStore : fridge === 'middle' ? middleTableStore : mainTableStore;
+  }
+
+  // Use local state for internal logic
+  let localState = state;
+
+  // Keep local text for renaming
+  let localText = text;
+
+  // Derived outFridge value
+  $: effectiveOutFridge = localState === CELL_STATES.EMPTY ? false : outFridge;
+
+  // Keep localState in sync with prop/state changes
+  $: if (state !== localState) localState = state;
+  $: if (text !== localText) localText = text;
+
+  // --- Cell class logic ---
+  $: cellClass = cn(
+    'cell flex items-center w-full h-full min-h-[32px] max-h-[48px] min-w-0 relative text-left overflow-visible box-border border',
+    {
+      'border-dashed': effectiveOutFridge,
+      'border-solid': !effectiveOutFridge,
+      'px-2': linked,
+      'px-1.5': !linked,
+      'border-slate-300': localState === CELL_STATES.EMPTY || (localState !== CELL_STATES.EMPTY && localState !== CELL_STATES.HOVER && localState !== CELL_STATES.HOVER_SELECTED && localState !== CELL_STATES.RENAMING && localState !== CELL_STATES.SELECTED && !effectiveOutFridge),
+      'border-slate-700': effectiveOutFridge || localState === CELL_STATES.SELECTED || localState === CELL_STATES.HOVER_SELECTED,
+      'border-sky-600': localState === CELL_STATES.HOVER || localState === CELL_STATES.RENAMING,
+      'text-slate-500': localState === CELL_STATES.EMPTY || effectiveOutFridge,
+      'text-slate-700': localState !== CELL_STATES.EMPTY && !effectiveOutFridge,
+      'font-bold': localState === CELL_STATES.SELECTED || localState === CELL_STATES.HOVER_SELECTED,
+      'font-normal': !(localState === CELL_STATES.SELECTED || localState === CELL_STATES.HOVER_SELECTED),
+      'italic': effectiveOutFridge,
+      'bg-sky-200': !linked && (localState === CELL_STATES.HOVER || localState === CELL_STATES.HOVER_SELECTED || localState === CELL_STATES.RENAMING)
+    }
+  );
+
+  // --- Cell style logic ---
+  const GROUP_COLOR_HEX = {
+    'group-green': '#10b981',
+    'group-yellow': '#f59e0b',
+    'group-indigo': '#6366f1',
+    'group-pink': '#ec4899',
+    'group-purple': '#8b5cf6',
+  };
+  function getGroupColorHex(colorName) {
+    return GROUP_COLOR_HEX[colorName] || colorName;
+  }
+  $: cellStyle = (() => {
+    let style = '';
+    const groupColorHex = getGroupColorHex(groupColor);
+    if (linked && (localState === CELL_STATES.HOVER || localState === CELL_STATES.HOVER_SELECTED || localState === CELL_STATES.RENAMING || groupHover)) {
+      style += `background-color: color-mix(in srgb, ${groupColorHex} 15%, white);`;
+    } else if (!linked && (localState === CELL_STATES.HOVER || localState === CELL_STATES.HOVER_SELECTED || localState === CELL_STATES.RENAMING)) {
+      // Do not set background, let Tailwind class apply
+    } else {
+      style += ` background: ${bgColor};`;
+    }
+    if (linked && localState !== CELL_STATES.REGULAR) {
+      style += `border-color: ${groupColorHex};`;
+    }
+    if (groupColorHex) {
+      style += `--hover-color: ${groupColorHex}`;
+    }
+    return style;
+  })();
+
+  // --- State transition helpers ---
+  function setState(newState) {
+    localState = newState;
+    const store = getStoreByCellKey(cellKey);
+    store.updateCell(cellKey, { state: newState });
+  }
+  function setText(newText) {
+    localText = newText;
+    const store = getStoreByCellKey(cellKey);
+    store.updateCell(cellKey, { text: newText });
+  }
 
   function handleMouseEnter() {
-    if (state === CELL_STATES.EMPTY) {
-      state = CELL_STATES.HOVER;
+    if (localState === CELL_STATES.EMPTY) {
+      setState(CELL_STATES.HOVER);
       return;
     }
-    if (state === CELL_STATES.REGULAR) {
-      state = CELL_STATES.HOVER;
-    } else if (state === CELL_STATES.SELECTED) {
-      state = CELL_STATES.HOVER_SELECTED;
+    if (localState === CELL_STATES.REGULAR) {
+      setState(CELL_STATES.HOVER);
+    } else if (localState === CELL_STATES.SELECTED) {
+      setState(CELL_STATES.HOVER_SELECTED);
     }
     if (linked) {
       hoveredGroup.set(groupName);
@@ -53,14 +131,14 @@
   }
 
   function handleMouseLeave() {
-    if (state === CELL_STATES.HOVER && text === '') {
-      state = CELL_STATES.EMPTY;
+    if (localState === CELL_STATES.HOVER && localText === '') {
+      setState(CELL_STATES.EMPTY);
       return;
     }
-    if (state === CELL_STATES.HOVER) {
-      state = CELL_STATES.REGULAR;
-    } else if (state === CELL_STATES.HOVER_SELECTED) {
-      state = CELL_STATES.SELECTED;
+    if (localState === CELL_STATES.HOVER) {
+      setState(CELL_STATES.REGULAR);
+    } else if (localState === CELL_STATES.HOVER_SELECTED) {
+      setState(CELL_STATES.SELECTED);
     }
     if (linked) {
       hoveredGroup.set(null);
@@ -68,53 +146,39 @@
   }
 
   function handleMouseDown(event) {
-    if (state === CELL_STATES.RENAMING) return;
+    if (localState === CELL_STATES.RENAMING) return;
     event.preventDefault();
-    
     // If this is an empty cell, deselect all others first
-    if (state === CELL_STATES.EMPTY || (state === CELL_STATES.HOVER && text === '')) {
+    if (localState === CELL_STATES.EMPTY || (localState === CELL_STATES.HOVER && localText === '')) {
       const selected = $selectedCells;
       selected.forEach(cellKey => {
-        const [fridge] = cellKey.split('-');
-        const store = fridge === 'left' ? leftTableStore : 
-                     fridge === 'middle' ? middleTableStore : 
-                     mainTableStore;
+        const store = getStoreByCellKey(cellKey);
         store.updateCell(cellKey, { state: CELL_STATES.REGULAR });
       });
       selectedCells.set(new Set());
     }
-    
     dispatch('startRenaming', { cellKey });
   }
 
   function handleClick() {
-    if (state === CELL_STATES.RENAMING) return;
-
+    if (localState === CELL_STATES.RENAMING) return;
     // Empty cells can only be renamed, never selected
-    if (state === CELL_STATES.EMPTY || (state === CELL_STATES.HOVER && text === '')) {
+    if (localState === CELL_STATES.EMPTY || (localState === CELL_STATES.HOVER && localText === '')) {
       selectedCells.set(new Set());  // Clear all selections
       dispatch('startRenaming', { cellKey });
       return;
     }
-
-    // Get the appropriate store based on the cell key
-    const [fridge] = cellKey.split('-');
-    const store = fridge === 'left' ? leftTableStore : 
-                 fridge === 'middle' ? middleTableStore : 
-                 mainTableStore;
-    
+    const store = getStoreByCellKey(cellKey);
     // Only allow selection for non-empty, non-renaming cells
-    if (state === CELL_STATES.HOVER || state === CELL_STATES.REGULAR) {
-      state = CELL_STATES.SELECTED;
-      store.updateCell(cellKey, { state: CELL_STATES.SELECTED });
+    if (localState === CELL_STATES.HOVER || localState === CELL_STATES.REGULAR) {
+      setState(CELL_STATES.SELECTED);
       selectedCells.update(cells => {
         const newCells = new Set(cells);
         newCells.add(cellKey);
         return newCells;
       });
-    } else if (state === CELL_STATES.HOVER_SELECTED || state === CELL_STATES.SELECTED) {
-      state = CELL_STATES.REGULAR;
-      store.updateCell(cellKey, { state: CELL_STATES.REGULAR });
+    } else if (localState === CELL_STATES.HOVER_SELECTED || localState === CELL_STATES.SELECTED) {
+      setState(CELL_STATES.REGULAR);
       selectedCells.update(cells => {
         const newCells = new Set(cells);
         newCells.delete(cellKey);
@@ -124,7 +188,7 @@
   }
 
   function handleKeyDown(event) {
-    if (state === CELL_STATES.RENAMING) return;
+    if (localState === CELL_STATES.RENAMING) return;
     if (event.key === 'Enter' || event.key === ' ') {
       handleClick();
     }
@@ -132,10 +196,10 @@
 
   function handleInputSubmit() {
     if (inputValue.trim()) {
-      text = inputValue.trim();
-      state = CELL_STATES.REGULAR;
+      setText(inputValue.trim());
+      setState(CELL_STATES.REGULAR);
     } else {
-      state = CELL_STATES.EMPTY;
+      setState(CELL_STATES.EMPTY);
     }
   }
 
@@ -145,39 +209,32 @@
       event.stopPropagation(); // Stop event from reaching parent div
       handleInputSubmit();
     } else if (event.key === 'Escape') {
-      state = CELL_STATES.EMPTY;
+      setState(CELL_STATES.EMPTY);
     }
   }
 
   function handleWindowClick(event) {
-    if (state === CELL_STATES.RENAMING) {
+    if (localState === CELL_STATES.RENAMING) {
       // Check if click was inside THIS cell
       const cell = event.target.closest('.cell');
       if (cell && cell.getAttribute('data-cell-key') === cellKey) {
         return;
       }
-
-      const [fridge] = cellKey.split('-');
-      const store = fridge === 'left' ? leftTableStore : 
-                   fridge === 'middle' ? middleTableStore : 
-                   mainTableStore;
-      
       handleInputSubmit();
-      store.updateCell(cellKey, { text, state });
       dispatch('stopRenaming');
     }
   }
 
-  $: if ($renamingCell === cellKey && (state === CELL_STATES.EMPTY || (state === CELL_STATES.HOVER && text === ''))) {
-    if (state !== CELL_STATES.RENAMING) {
-      state = CELL_STATES.RENAMING;
+  $: if ($renamingCell === cellKey && (localState === CELL_STATES.EMPTY || (localState === CELL_STATES.HOVER && localText === ''))) {
+    if (localState !== CELL_STATES.RENAMING) {
+      setState(CELL_STATES.RENAMING);
       inputValue = '';
     }
-  } else if (state === CELL_STATES.RENAMING && $renamingCell !== cellKey) {
+  } else if (localState === CELL_STATES.RENAMING && $renamingCell !== cellKey) {
     dispatch('stopRenaming');
   }
 
-  $: if (state === CELL_STATES.RENAMING && inputEl) {
+  $: if (localState === CELL_STATES.RENAMING && inputEl) {
     inputEl.focus();
   }
 </script>
@@ -187,9 +244,9 @@
 <div
   tabindex="0"
   role="button"
-  class={getCellClass({ state, linked, outFridge, groupHover })}
+  class={cellClass}
   data-cell-key={cellKey}
-  style={getCellStyle({ state, linked, groupHover, groupColor, bgColor })}
+  style={`min-height: var(--cell-min-height, 32px); max-height: var(--cell-max-height, 48px); ${cellStyle}`}
   on:mouseover={handleMouseEnter}
   on:mouseout={handleMouseLeave}
   on:mousedown={handleMouseDown}
@@ -201,26 +258,31 @@
   on:mouseleave={() => setHoveredCol(null)}
 >
   {#if isTopCell && $hoveredCol === col}
-    <div class="absolute -top-8 left-0 w-full bg-sky-800 text-white py-[2px] rounded-none text-[0.9em] font-bold pointer-events-none z-20 box-border flex justify-center items-center" style="background: var(--color-sky-800, #0369a1);">{col + 1}</div>
+    <div class={cn(
+      "absolute -top-8 left-0 w-full text-white py-[2px] rounded-none text-[0.9em] font-bold pointer-events-none z-20 box-border flex justify-center items-center",
+      "bg-sky-800"
+    )} style="background: var(--color-sky-800, #0369a1);">{col + 1}</div>
   {/if}
   {#if linked}
     <div class="absolute top-0 right-0 w-0 h-0 z-2" style="border-top: 1rem solid {groupColor}; border-left: 1rem solid transparent;"></div>
   {/if}
-  {#if state === CELL_STATES.EMPTY || (state === CELL_STATES.HOVER && text === '')}
+  {#if localState === CELL_STATES.EMPTY || (localState === CELL_STATES.HOVER && localText === '')}
     <span class="w-full overflow-hidden text-ellipsis whitespace-nowrap leading-[var(--cell-height)] text-center">---</span>
   {/if}
-  {#if state === CELL_STATES.RENAMING}
+  {#if localState === CELL_STATES.RENAMING}
     <input
       type="text"
       bind:value={inputValue}
-      class="w-full h-full px-1 border-none focus:outline-none bg-transparent"
+      class={cn(
+        "w-full h-full px-1 border-none focus:outline-none bg-transparent"
+      )}
       on:blur={handleInputSubmit}
       on:keydown={handleInputKeydown}
       on:click|stopPropagation
       bind:this={inputEl}
     />
   {/if}
-  {#if state !== CELL_STATES.EMPTY && state !== 'group-highlight' && state !== CELL_STATES.RENAMING && !(state === CELL_STATES.HOVER && text === '')}
-    <span class="w-full overflow-hidden text-ellipsis whitespace-nowrap leading-[var(--cell-height)] text-left">{text}</span>
+  {#if localState !== CELL_STATES.EMPTY && localState !== 'group-highlight' && localState !== CELL_STATES.RENAMING && !(localState === CELL_STATES.HOVER && localText === '')}
+    <span class="w-full overflow-hidden text-ellipsis whitespace-nowrap leading-[var(--cell-height)] text-left">{localText}</span>
   {/if}
 </div>

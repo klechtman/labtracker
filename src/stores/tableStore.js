@@ -1,4 +1,5 @@
 import { writable, derived } from 'svelte/store';
+import { writable as svelteWritable } from 'svelte/store';
 
 // Table configurations
 export const tableConfigs = {
@@ -69,4 +70,7 @@ export const cellGroups = derived(
       });
     return groups;
   }
-); 
+);
+
+// Store for the currently hovered row (for global row number highlighting)
+export const hoveredRow = svelteWritable(null); 
