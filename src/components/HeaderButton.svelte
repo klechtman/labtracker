@@ -1,7 +1,6 @@
 <script>
   export let onClick;
   export let disabled = false;
-  export let count = 0;
 </script>
 
 <button
@@ -9,5 +8,5 @@
   on:click={onClick}
   disabled={disabled}
 >
-  Link Selected Cells ({count})
+  Link Selected Cells
 </button> 

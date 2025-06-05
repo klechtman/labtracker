@@ -36,23 +36,4 @@
     font-family: 'Arimo', sans-serif;
     font-size: 14px; /* Base font size for most content */
   }
-}
-
-@layer components {
-  .cell-empty {
-    @apply border border-slate-300 text-slate-500 border-dashed;
-  }
-
-  :global(.table-container) {
-    display: grid;
-    width: 100%;
-    gap: 1px;
-    grid-auto-rows: minmax(32px, 48px);
-  }
-
-  :global(.cell) {
-    min-height: 32px;
-    max-height: 48px;
-    height: 100%;
-  }
 } 

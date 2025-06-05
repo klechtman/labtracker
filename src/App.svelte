@@ -121,6 +121,15 @@
   // Create an array of table configs for rendering
   const tableOrder = ['left', 'middle', 'main'];
   const tableGridColumns = '5fr 2fr 10fr';
+
+  let isSmallScreen = false;
+  if (typeof window !== 'undefined') {
+    const checkScreen = () => {
+      isSmallScreen = window.innerWidth <= 1300;
+    };
+    checkScreen();
+    window.addEventListener('resize', checkScreen);
+  }
 </script>
 
 <main class="h-screen bg-sky-50 p-0 flex flex-col overflow-auto">
@@ -133,54 +142,67 @@
     />
   </Header>
 
-  <div class="flex-1 flex flex-col justify-end pt-20 p-5">
-    <div class="tables-row" style={`display: grid; grid-template-columns: ${tableGridColumns}; gap: 16px; min-width: 1200px; align-items: end; height: 100%;`}>
-      {#each tableOrder as key}
-        <div class="h-full flex flex-col justify-end">
+  <div class="flex-1 flex flex-col justify-end pt-28 pb-9 px-12">
+    <div class="grid tables-row w-full min-w-0"
+      style={`
+        display: grid;
+        gap: 48px;
+        min-width: ${isSmallScreen ? '0' : '1200px'};
+        align-items: end;
+        height: ${isSmallScreen ? 'auto' : '100%'};
+        grid-template-columns: ${isSmallScreen ? '5fr 2fr' : tableGridColumns};
+        grid-template-rows: ${isSmallScreen ? 'auto auto' : 'auto'};
+      `}
+    >
+      {#if isSmallScreen}
+        <div class="h-full flex flex-col justify-end w-full min-w-0" style="grid-column: 1 / 2; grid-row: 1;">
           <Table
-            rows={tableConfigs[key].rows}
-            columns={tableConfigs[key].columns}
+            rows={tableConfigs.left.rows}
+            columns={tableConfigs.left.columns}
             renamingCell={$renamingCell}
             handleStartRenaming={handleStartRenaming}
             on:stopRenaming={handleStopRenaming}
-            fridge={key}
-            tableName={tableConfigs[key].name}
+            fridge="left"
+            tableName={tableConfigs.left.name}
           />
         </div>
-      {/each}
+        <div class="h-full flex flex-col justify-end w-full min-w-0" style="grid-column: 2 / 3; grid-row: 1;">
+          <Table
+            rows={tableConfigs.middle.rows}
+            columns={tableConfigs.middle.columns}
+            renamingCell={$renamingCell}
+            handleStartRenaming={handleStartRenaming}
+            on:stopRenaming={handleStopRenaming}
+            fridge="middle"
+            tableName={tableConfigs.middle.name}
+          />
+        </div>
+        <div class="h-full flex flex-col justify-end w-full min-w-0" style="grid-column: 1 / 3; grid-row: 2;">
+          <Table
+            rows={tableConfigs.main.rows}
+            columns={tableConfigs.main.columns}
+            renamingCell={$renamingCell}
+            handleStartRenaming={handleStartRenaming}
+            on:stopRenaming={handleStopRenaming}
+            fridge="main"
+            tableName={tableConfigs.main.name}
+          />
+        </div>
+      {:else}
+        {#each tableOrder as key}
+          <div class="h-full flex flex-col justify-end w-full min-w-0">
+            <Table
+              rows={tableConfigs[key].rows}
+              columns={tableConfigs[key].columns}
+              renamingCell={$renamingCell}
+              handleStartRenaming={handleStartRenaming}
+              on:stopRenaming={handleStopRenaming}
+              fridge={key}
+              tableName={tableConfigs[key].name}
+            />
+          </div>
+        {/each}
+      {/if}
     </div>
   </div>
 </main>
-
-<style>
-  /* Your component styles here */
-  :global(.table-container) {
-    display: grid;
-    width: 100%;
-    gap: 1px;
-    grid-auto-rows: min(24px);
-  }
-
-  :global(.table-container[data-columns="5"]) {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-
-  :global(.table-container[data-columns="2"]) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  :global(.table-container[data-columns="10"]) {
-    grid-template-columns: repeat(10, minmax(0, 1fr));
-  }
-
-  @media (max-width: 1300px) {
-    .tables-row {
-      grid-template-columns: 5fr 2fr !important;
-      min-width: 750px !important;
-      height: 200% !important; /* Double the vertical space */
-    }
-    .tables-row > div:last-child {
-      grid-column: 1 / -1;
-    }
-  }
-</style>

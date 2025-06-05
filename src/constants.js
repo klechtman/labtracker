@@ -33,4 +33,12 @@ export const STYLES = {
       HEADER: '14px'
     }
   }
-}; 
+};
+
+export const groupColors = [
+  'group-green',
+  'group-yellow',
+  'group-indigo',
+  'group-pink',
+  'group-purple',
+]; 

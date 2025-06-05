@@ -1,11 +1,14 @@
 <script>
-  import { createEventDispatcher } from 'svelte';
+  import { createEventDispatcher, getContext } from 'svelte';
   import { CELL_STATES, COLORS } from '../constants';
-  import { getCellState, getBorderStyle, getPaddingStyle, getHoverBgColor } from '../utils/cellUtils';
+  import { getCellState, getBorderStyle, getPaddingStyle, getHoverBgColor, getCellClass, getCellStyle } from '../utils/cellUtils';
   import { renamingCell, selectedCells, leftTableStore, middleTableStore, mainTableStore } from '../stores/tableStore';
   import { hoveredGroup } from '../stores/hoverStore';
 
   const dispatch = createEventDispatcher();
+
+  const hoveredCol = getContext('hoveredCol');
+  const setHoveredCol = getContext('setHoveredCol');
 
   export let linked = false;         // Is this cell part of a group?
   export let state = CELL_STATES.EMPTY;        // 'empty', 'regular', 'hover', 'selected', 'hover-selected', 'renaming'
@@ -15,6 +18,8 @@
   export let outFridge = false;      // Dashed border if true (default: false)
   export let cellKey = '';
   export let bgColor = '';
+  export let isTopCell = false;
+  export let col = null;
 
   let inputValue = '';               // Value for the renaming input field
   let inputEl;
@@ -182,17 +187,9 @@
 <div
   tabindex="0"
   role="button"
-  class="cell flex items-center w-full h-full relative text-left overflow-visible box-border border {borderStyle} {paddingStyle} {hoverBgColor}"
+  class={getCellClass({ state, linked, outFridge, groupHover })}
   data-cell-key={cellKey}
-  class:border-slate-300={state === CELL_STATES.EMPTY || (state !== CELL_STATES.EMPTY && state !== CELL_STATES.HOVER && state !== CELL_STATES.HOVER_SELECTED && state !== CELL_STATES.RENAMING && state !== CELL_STATES.SELECTED && !outFridge)}
-  class:border-slate-700={outFridge || state === CELL_STATES.SELECTED || state === CELL_STATES.HOVER_SELECTED}
-  class:border-sky-600={state === CELL_STATES.HOVER || state === CELL_STATES.RENAMING}
-  class:text-slate-500={state === CELL_STATES.EMPTY || outFridge}
-  class:text-slate-700={state !== CELL_STATES.EMPTY && !outFridge}
-  class:font-bold={(state === CELL_STATES.SELECTED || state === CELL_STATES.HOVER_SELECTED)}
-  class:font-normal={!(state === CELL_STATES.SELECTED || state === CELL_STATES.HOVER_SELECTED)}
-  class:italic={outFridge}
-  style="{linked && state !== CELL_STATES.REGULAR ? `border-color: ${groupColor};` : ''} {groupColor ? `--hover-color: ${groupColor};` : ''}{hoverBgColor ? '' : ` background: ${bgColor};`}"
+  style={getCellStyle({ state, linked, groupHover, groupColor, bgColor })}
   on:mouseover={handleMouseEnter}
   on:mouseout={handleMouseLeave}
   on:mousedown={handleMouseDown}
@@ -200,7 +197,12 @@
   on:keydown={handleKeyDown}
   on:focus={handleMouseEnter}
   on:blur={handleMouseLeave}
+  on:mouseenter={() => setHoveredCol(col)}
+  on:mouseleave={() => setHoveredCol(null)}
 >
+  {#if isTopCell && $hoveredCol === col}
+    <div class="absolute -top-8 left-0 w-full bg-sky-800 text-white py-[2px] rounded-none text-[0.9em] font-bold pointer-events-none z-20 box-border flex justify-center items-center" style="background: var(--color-sky-800, #0369a1);">{col + 1}</div>
+  {/if}
   {#if linked}
     <div class="absolute top-0 right-0 w-0 h-0 z-2" style="border-top: 1rem solid {groupColor}; border-left: 1rem solid transparent;"></div>
   {/if}
@@ -222,19 +224,3 @@
     <span class="w-full overflow-hidden text-ellipsis whitespace-nowrap leading-[var(--cell-height)] text-left">{text}</span>
   {/if}
 </div>
-
-<style>
-  :global(.cell) {
-    width: 100%;
-    height: 100%;
-    min-height: 32px;
-    max-height: 48px;
-    min-width: 0;
-  }
-  .hover-bg {
-    background-color: color-mix(in srgb, var(--hover-color) 20%, transparent);
-  }
-  .hover-bg-regular {
-    background-color: color-mix(in srgb, var(--color-sky-600) 20%, transparent);
-  }
-</style>
