@@ -1,10 +1,7 @@
 export const CELL_STATES = {
   EMPTY: 'empty',
   REGULAR: 'regular',
-  HOVER: 'hover',
-  SELECTED: 'selected',
-  HOVER_SELECTED: 'hover-selected',
-  RENAMING: 'renaming'
+  HOVER: 'hover'
 };
 
 export const COLORS = {
@@ -41,4 +38,12 @@ export const groupColors = [
   'group-indigo',
   'group-pink',
   'group-purple',
-]; 
+];
+
+export const GROUP_COLOR_HEX = {
+  'group-green': '#10b981',
+  'group-yellow': '#f59e0b',
+  'group-indigo': '#6366f1',
+  'group-pink': '#ec4899',
+  'group-purple': '#8b5cf6',
+}; 

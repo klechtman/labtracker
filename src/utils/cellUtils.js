@@ -1,5 +1,6 @@
 import { CELL_STATES } from '../constants';
 import { cn } from '../lib/utils';
+import { leftTableStore, middleTableStore, mainTableStore } from '../stores/tableStore';
 
 export function getCellState(state, text) {
   if (state === CELL_STATES.EMPTY) return CELL_STATES.EMPTY;
@@ -16,7 +17,7 @@ export function parseCellKey(cellKey) {
   return { fridge, row: parseInt(row), col: parseInt(col) };
 }
 
-export function getCellClass({ state, linked, outFridge, groupHover }) {
+export function getCellClass({ state, linked, outFridge, groupHover, isSelected }) {
   return cn(
     'cell flex items-center w-full h-full min-h-[32px] max-h-[48px] min-w-0 relative text-left overflow-visible box-border border',
     {
@@ -24,15 +25,16 @@ export function getCellClass({ state, linked, outFridge, groupHover }) {
       'border-solid': !outFridge,
       'px-2': linked,
       'px-1.5': !linked,
-      'border-slate-300': state === CELL_STATES.EMPTY || (state !== CELL_STATES.EMPTY && state !== CELL_STATES.HOVER && state !== CELL_STATES.HOVER_SELECTED && state !== CELL_STATES.RENAMING && state !== CELL_STATES.SELECTED && !outFridge),
-      'border-slate-700': outFridge || state === CELL_STATES.SELECTED || state === CELL_STATES.HOVER_SELECTED,
-      'border-sky-600': state === CELL_STATES.HOVER || state === CELL_STATES.RENAMING,
-      'text-slate-500': state === CELL_STATES.EMPTY || outFridge,
+      'border-slate-300': (state === CELL_STATES.EMPTY && !isSelected) || (state !== CELL_STATES.EMPTY && state !== CELL_STATES.HOVER && !outFridge),
+      'border-slate-700': outFridge || isSelected,
+      'border-sky-600': state === CELL_STATES.HOVER,
+      'text-slate-500': (state === CELL_STATES.EMPTY && !isSelected) || outFridge,
       'text-slate-700': state !== CELL_STATES.EMPTY && !outFridge,
-      'font-bold': state === CELL_STATES.SELECTED || state === CELL_STATES.HOVER_SELECTED,
-      'font-normal': !(state === CELL_STATES.SELECTED || state === CELL_STATES.HOVER_SELECTED),
+      'font-bold': isSelected && state !== CELL_STATES.EMPTY,
+      'font-normal': !isSelected || state === CELL_STATES.EMPTY,
       'italic': outFridge,
-      'bg-sky-200': !linked && (state === CELL_STATES.HOVER || state === CELL_STATES.HOVER_SELECTED || state === CELL_STATES.RENAMING)
+      'bg-sky-100': !linked && state === CELL_STATES.HOVER,
+      'bg-white': isSelected && state === CELL_STATES.EMPTY
     }
   );
 }
@@ -50,19 +52,44 @@ export function getGroupColorHex(colorName) {
   return GROUP_COLOR_HEX[colorName] || colorName;
 }
 
-export function getCellStyle({ state, linked, groupHover, groupColor, bgColor }) {
+export function getCellStyle({ state, linked, groupHover, groupColor, bgColor, isSelected }) {
   let style = '';
   const groupColorHex = getGroupColorHex(groupColor);
-  if (linked && (state === CELL_STATES.HOVER || state === CELL_STATES.HOVER_SELECTED || state === CELL_STATES.RENAMING || groupHover)) {
+  if (linked && (state === CELL_STATES.HOVER || (isSelected && state !== CELL_STATES.EMPTY) || groupHover)) {
     style += `background-color: color-mix(in srgb, ${groupColorHex} 15%, white);`;
-  } else {
+  } else if (!linked && state !== CELL_STATES.HOVER) {
     style += ` background: ${bgColor};`;
   }
-  if (linked && state !== CELL_STATES.REGULAR) {
+  if (linked && (state !== CELL_STATES.REGULAR || (isSelected && state !== CELL_STATES.EMPTY))) {
     style += `border-color: ${groupColorHex};`;
   }
   if (groupColorHex) {
     style += `--hover-color: ${groupColorHex}`;
   }
   return style;
+}
+
+// Cell naming utilities
+export function updateCellName(cellKey, newName, store) {
+  if (!cellKey || !store) return;
+  
+  const currentCell = store.get(cellKey) || {};
+  store.updateCell(cellKey, {
+    text: newName,
+    state: newName.trim() ? 'regular' : 'empty'
+  });
+}
+
+export function getCellName(cellKey, store) {
+  if (!cellKey || !store) return '';
+  const cell = store.get(cellKey) || {};
+  return cell.text || '';
+}
+
+export function getStoreByCellKey(cellKey) {
+  if (!cellKey) return null;
+  const [fridge] = cellKey.split('-');
+  return fridge === 'left' ? leftTableStore : 
+         fridge === 'middle' ? middleTableStore : 
+         mainTableStore;
 } 

@@ -45,9 +45,6 @@ export const leftTableStore = createTableStore('left');
 export const middleTableStore = createTableStore('middle');
 export const mainTableStore = createTableStore('main');
 
-// Store for the currently renaming cell
-export const renamingCell = writable(null);
-
 // Store for selected cells across all tables
 export const selectedCells = writable(new Set());
 

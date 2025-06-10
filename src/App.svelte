@@ -1,22 +1,12 @@
 <script>
   import Cell from './components/Cell.svelte';
   import Table from './components/Table.svelte';
-  import { tableConfigs, renamingCell, selectedCells, leftTableStore, middleTableStore, mainTableStore } from './stores/tableStore';
+  import { tableConfigs, selectedCells, leftTableStore, middleTableStore, mainTableStore } from './stores/tableStore';
   import { CELL_STATES } from './constants';
   import Header from './components/Header.svelte';
   import HeaderButton from './components/HeaderButton.svelte';
   import RowNumber from './components/RowNumber.svelte';
   
-  // Track which cell is being renamed
-  function handleStartRenaming(event) {
-    const { cellKey } = event.detail;
-    renamingCell.set(cellKey);
-  }
-
-  function handleStopRenaming() {
-    renamingCell.set(null);
-  }
-
   // Track the next color index to use
   let nextColorIndex = 0;
   const groupColors = ['#10b981', '#f59e0b', '#6366f1', '#ec4899', '#8b5cf6'];
@@ -28,6 +18,7 @@
 
     let existingGroup = null;
     let hasUnlinkedCell = false;
+    let hasEmptyCell = false;
     
     for (const cellKey of selected) {
       const [fridge] = cellKey.split('-');
@@ -36,6 +27,12 @@
                    mainTableStore;
       
       const cellData = store.get(cellKey) || {};
+      
+      // Check if any cell is empty
+      if (!cellData.text || !cellData.text.trim()) {
+        hasEmptyCell = true;
+        break;
+      }
       
       if (cellData.linked) {
         if (existingGroup && existingGroup !== cellData.groupName) {
@@ -50,8 +47,8 @@
       }
     }
     
-    // Can link if we found an unlinked cell, even if all other cells are in the same group
-    return hasUnlinkedCell;
+    // Can link if we found an unlinked cell and no empty cells
+    return hasUnlinkedCell && !hasEmptyCell;
   })();
 
   // Handle linking selected cells
@@ -166,9 +163,6 @@
           <Table
             rows={tableConfigs.left.rows}
             columns={tableConfigs.left.columns}
-            renamingCell={$renamingCell}
-            handleStartRenaming={handleStartRenaming}
-            on:stopRenaming={handleStopRenaming}
             fridge="left"
             tableName={tableConfigs.left.name}
           />
@@ -177,9 +171,6 @@
           <Table
             rows={tableConfigs.middle.rows}
             columns={tableConfigs.middle.columns}
-            renamingCell={$renamingCell}
-            handleStartRenaming={handleStartRenaming}
-            on:stopRenaming={handleStopRenaming}
             fridge="middle"
             tableName={tableConfigs.middle.name}
           />
@@ -190,9 +181,6 @@
           <Table
             rows={tableConfigs.main.rows}
             columns={tableConfigs.main.columns}
-            renamingCell={$renamingCell}
-            handleStartRenaming={handleStartRenaming}
-            on:stopRenaming={handleStopRenaming}
             fridge="main"
             tableName={tableConfigs.main.name}
           />
@@ -205,9 +193,6 @@
             <Table
               rows={tableConfigs[key].rows}
               columns={tableConfigs[key].columns}
-              renamingCell={$renamingCell}
-              handleStartRenaming={handleStartRenaming}
-              on:stopRenaming={handleStopRenaming}
               fridge={key}
               tableName={tableConfigs[key].name}
             />

@@ -11,8 +11,6 @@
 
   export let rows = 21;
   export let columns = 10;
-  export let renamingCell = null;
-  export let handleStartRenaming;
   export let fridge = 'main';
   export let tableName = '';
   export let rowNumbersOnly = false;
@@ -74,9 +72,6 @@
                 groupColor={cellData.groupColor || ""}
                 text={cellData.text || ""}
                 cellKey={cellKey}
-                renamingCell={renamingCell}
-                on:startRenaming={handleStartRenaming}
-                on:stopRenaming
                 bgColor={row % 2 === 0 ? 'white' : 'var(--color-sky-50)'}
                 isTopCell={row === (Array.isArray(rows) ? rows[col] : rows) - 1}
                 col={col}
