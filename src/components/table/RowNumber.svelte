@@ -1,5 +1,5 @@
 <script>
-  import { hoveredRow } from '../stores/tableStore';
+  import { hoveredRow } from '../../stores/tableStore';
   export let number;
   export let className = '';
   $: isHovered = $hoveredRow === number;

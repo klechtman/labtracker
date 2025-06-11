@@ -1,11 +1,12 @@
 <script>
   import Cell from './Cell.svelte';
-  import { tableConfigs, leftTableStore, middleTableStore, mainTableStore, hoveredRow } from '../stores/tableStore';
-  import { getCellKey } from '../utils/cellUtils';
+  import { tableConfigs, leftTableStore, middleTableStore, mainTableStore, hoveredRow, selectedCells, isLinkMode } from '../../stores/tableStore';
+  import { getCellKey } from '../../utils/cellUtils';
   import { createEventDispatcher } from 'svelte';
   import { setContext } from 'svelte';
   import { writable } from 'svelte/store';
   import RowNumber from './RowNumber.svelte';
+  import ColumnNumber from './ColumnNumber.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -15,15 +16,13 @@
   export let tableName = '';
   export let rowNumbersOnly = false;
 
-  // Get the appropriate store based on fridge
+  let store;
   $: store = fridge === 'left' ? leftTableStore :
             fridge === 'middle' ? middleTableStore :
             mainTableStore;
 
-  // Generate row and column arrays
   $: colArr = Array.from({ length: columns }, (_, i) => i);
 
-  // Calculate maxRows across all tables
   $: allTableRows = [
     Array.isArray(tableConfigs.left.rows) ? Math.max(...tableConfigs.left.rows) : tableConfigs.left.rows,
     Array.isArray(tableConfigs.middle.rows) ? Math.max(...tableConfigs.middle.rows) : tableConfigs.middle.rows,
@@ -35,9 +34,27 @@
   function setHoveredCol(col) { hoveredCol.set(col); }
   setContext('hoveredCol', hoveredCol);
   setContext('setHoveredCol', setHoveredCol);
+
+  // Function to get the topmost rendered cell row for a column
+  function getTopmostCellRow(col) {
+    if (Array.isArray(rows)) {
+      return rows[col] - 1;
+    }
+    return rows - 1;
+  }
+
+  function handleTableClick(event) {
+    // Don't deselect if we're in link mode
+    if ($isLinkMode) return;
+
+    // Only deselect if the click is directly on the table container
+    if (event.target === event.currentTarget) {
+      selectedCells.set(new Set());
+    }
+  }
 </script>
 
-<div class="flex flex-col justify-end h-full">
+<div class="flex flex-col justify-end h-full" role="presentation" on:click={handleTableClick}>
   {#if rowNumbersOnly}
     <div class="grid flex-grow w-full gap-px" style="grid-template-rows: repeat({maxRows}, 1fr); grid-template-columns: 1fr; margin-left: 0;">
       {#each Array.from({ length: maxRows }, (_, i) => maxRows - i) as n}
@@ -54,15 +71,21 @@
       </div>
     </div>
   {:else}
-    <div class="grid flex-grow w-full gap-px" data-columns={columns} style="grid-template-rows: repeat({maxRows}, 1fr); grid-template-columns: repeat({columns}, minmax(0, 1fr)); margin-left: 0;">
+    <div class="grid flex-grow w-full gap-px relative" data-columns={columns} style="grid-template-rows: repeat({maxRows}, 1fr); grid-template-columns: repeat({columns}, minmax(0, 1fr)); margin-left: 0;">
       {#each Array.from({ length: maxRows }, (_, row) => maxRows - row - 1) as row}
         {#each colArr as col}
           {#if (!Array.isArray(rows) && row < rows) || (Array.isArray(rows) && row < rows[col])}
             {@const cellKey = getCellKey(fridge, row, col)}
             {@const cellData = $store[cellKey] || {}}
             <div class="relative" data-col={col} role="presentation"
-              on:mouseenter={() => hoveredRow.set(row + 1)}
-              on:mouseleave={() => hoveredRow.set(null)}
+              on:mouseenter={() => {
+                hoveredRow.set(row + 1);
+                setHoveredCol(col);
+              }}
+              on:mouseleave={() => {
+                hoveredRow.set(null);
+                setHoveredCol(null);
+              }}
             >
               <Cell 
                 state={cellData.state || "empty"}
@@ -78,10 +101,23 @@
               />
             </div>
           {:else}
-            <div class="cell" data-col={col} role="presentation"></div>
+            <div class="relative" data-col={col} role="presentation"></div>
           {/if}
         {/each}
       {/each}
+      
+      {#if $hoveredCol !== null}
+        {@const topRow = getTopmostCellRow($hoveredCol)}
+        <div class="absolute" style="
+          top: calc(({maxRows} - {topRow} - 1) * (100% / {maxRows}));
+          left: calc({$hoveredCol} * (100% / {columns}));
+          width: calc(100% / {columns});
+          transform: translateY(-100%);
+          padding-bottom: 2px;
+        ">
+          <ColumnNumber number={$hoveredCol + 1} />
+        </div>
+      {/if}
     </div>
     <div class="mt-2 flex flex-col">
       {#if tableName}

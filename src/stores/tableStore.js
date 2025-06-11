@@ -1,5 +1,4 @@
 import { writable, derived } from 'svelte/store';
-import { writable as svelteWritable } from 'svelte/store';
 
 // Table configurations
 export const tableConfigs = {
@@ -21,9 +20,8 @@ export const tableConfigs = {
 };
 
 // Create stores for each table's cells
-const createTableStore = (tableId) => {
+const createTableStore = () => {
   const { subscribe, set, update } = writable({});
-  
   return {
     subscribe,
     updateCell: (cellKey, data) => update(cells => ({
@@ -31,43 +29,59 @@ const createTableStore = (tableId) => {
       [cellKey]: { ...cells[cellKey], ...data }
     })),
     get: (cellKey) => {
-      let result;
-      subscribe(cells => {
-        result = cells[cellKey];
-      })();
-      return result;
+      let value;
+      const unsubscribe = subscribe(v => value = v);
+      unsubscribe();
+      return value[cellKey];
     },
-    reset: () => set({})
+    reset: () => set({}),
+    set,
   };
 };
 
-export const leftTableStore = createTableStore('left');
-export const middleTableStore = createTableStore('middle');
-export const mainTableStore = createTableStore('main');
+export const leftTableStore = createTableStore();
+export const middleTableStore = createTableStore();
+export const mainTableStore = createTableStore();
 
 // Store for selected cells across all tables
 export const selectedCells = writable(new Set());
+export const isLinkMode = writable(false);
 
-// Derived store for cell groups
-export const cellGroups = derived(
-  [leftTableStore, middleTableStore, mainTableStore],
-  ([$left, $middle, $main]) => {
-    const groups = {};
-    [...Object.entries($left), ...Object.entries($middle), ...Object.entries($main)]
-      .forEach(([key, cell]) => {
-        if (cell.groupName) {
-          if (!groups[cell.groupName]) {
-            groups[cell.groupName] = {
-              color: cell.groupColor,
-              cells: []
-            };
-          }
-          groups[cell.groupName].cells.push(key);
-        }
-      });
-    return groups;
+// Svelte 5: cellGroups as a function to be used in Svelte components
+export function getCellGroups(left, middle, main) {
+  const groups = {};
+  for (const [key, cell] of [
+    ...Object.entries(left || {}),
+    ...Object.entries(middle || {}),
+    ...Object.entries(main || {})
+  ]) {
+    if (cell.groupName) {
+      if (!groups[cell.groupName]) {
+        groups[cell.groupName] = {
+          color: cell.groupColor,
+          cells: []
+        };
+      }
+      groups[cell.groupName].cells.push(key);
+    }
   }
-);
+  return groups;
+}
 
 // Store for the currently hovered row (for global row number highlighting)
-export const hoveredRow = svelteWritable(null); 
+export const hoveredRow = writable(null);
+
+export const selectedCellData = derived(
+  [selectedCells, leftTableStore, middleTableStore, mainTableStore],
+  ([$selectedCells, $leftTableStore, $middleTableStore, $mainTableStore]) => {
+    if ($selectedCells.size === 0) return null;
+    const cellKey = Array.from($selectedCells)[0];
+    if (!cellKey) return null;
+    const [fridge] = cellKey.split('-');
+    let store;
+    if (fridge === 'left') store = $leftTableStore;
+    else if (fridge === 'middle') store = $middleTableStore;
+    else store = $mainTableStore;
+    return store[cellKey] || null;
+  }
+);

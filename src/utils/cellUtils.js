@@ -17,7 +17,7 @@ export function parseCellKey(cellKey) {
   return { fridge, row: parseInt(row), col: parseInt(col) };
 }
 
-export function getCellClass({ state, linked, outFridge, groupHover, isSelected }) {
+export function getCellClass({ state, linked, outFridge, groupHover, isSelected, isDisabled }) {
   return cn(
     'cell flex items-center w-full h-full min-h-[32px] max-h-[48px] min-w-0 relative text-left overflow-visible box-border border',
     {
@@ -34,13 +34,15 @@ export function getCellClass({ state, linked, outFridge, groupHover, isSelected 
       'font-normal': !isSelected || state === CELL_STATES.EMPTY,
       'italic': outFridge,
       'bg-sky-100': !linked && state === CELL_STATES.HOVER,
-      'bg-white': isSelected && state === CELL_STATES.EMPTY
+      'bg-white': isSelected && state === CELL_STATES.EMPTY,
+      'opacity-50 cursor-not-allowed': isDisabled,
+      'hover:bg-sky-100': !isDisabled && !linked && state === CELL_STATES.EMPTY
     }
   );
 }
 
 // Map Tailwind group color names to hex values
-const GROUP_COLOR_HEX = {
+export const GROUP_COLOR_HEX = {
   'group-green': '#10b981',
   'group-yellow': '#f59e0b',
   'group-indigo': '#6366f1',
@@ -52,19 +54,22 @@ export function getGroupColorHex(colorName) {
   return GROUP_COLOR_HEX[colorName] || colorName;
 }
 
-export function getCellStyle({ state, linked, groupHover, groupColor, bgColor, isSelected }) {
+export function getCellStyle({ state, linked, groupHover, groupColor, bgColor, isSelected, isDisabled }) {
   let style = '';
   const groupColorHex = getGroupColorHex(groupColor);
   if (linked && (state === CELL_STATES.HOVER || (isSelected && state !== CELL_STATES.EMPTY) || groupHover)) {
-    style += `background-color: color-mix(in srgb, ${groupColorHex} 15%, white);`;
-  } else if (!linked && state !== CELL_STATES.HOVER) {
-    style += ` background: ${bgColor};`;
+    style += `background-color: color-mix(in srgb, ${groupColorHex} 15%, ${bgColor});`;
+  } else {
+    style += `background: ${bgColor};`;
   }
   if (linked && (state !== CELL_STATES.REGULAR || (isSelected && state !== CELL_STATES.EMPTY))) {
     style += `border-color: ${groupColorHex};`;
   }
   if (groupColorHex) {
     style += `--hover-color: ${groupColorHex}`;
+  }
+  if (isDisabled) {
+    style += 'pointer-events: none;';
   }
   return style;
 }
@@ -74,9 +79,12 @@ export function updateCellName(cellKey, newName, store) {
   if (!cellKey || !store) return;
   
   const currentCell = store.get(cellKey) || {};
+  const newState = newName.trim() ? CELL_STATES.REGULAR : CELL_STATES.EMPTY;
+  
   store.updateCell(cellKey, {
+    ...currentCell,
     text: newName,
-    state: newName.trim() ? 'regular' : 'empty'
+    state: newState
   });
 }
 

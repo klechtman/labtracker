@@ -1,15 +1,26 @@
 <script>
-  import Cell from './components/Cell.svelte';
-  import Table from './components/Table.svelte';
-  import { tableConfigs, selectedCells, leftTableStore, middleTableStore, mainTableStore } from './stores/tableStore';
+  import Cell from './components/table/Cell.svelte';
+  import Table from './components/table/Table.svelte';
+  import { tableConfigs, selectedCells, leftTableStore, middleTableStore, mainTableStore, getCellGroups, isLinkMode } from './stores/tableStore';
   import { CELL_STATES } from './constants';
-  import Header from './components/Header.svelte';
-  import HeaderButton from './components/HeaderButton.svelte';
-  import RowNumber from './components/RowNumber.svelte';
+  import Header from './components/table/Header.svelte';
+  import RowNumber from './components/table/RowNumber.svelte';
+  import Button from './components/common/Button.svelte';
   
   // Track the next color index to use
   let nextColorIndex = 0;
   const groupColors = ['#10b981', '#f59e0b', '#6366f1', '#ec4899', '#8b5cf6'];
+
+  // Handle ESC and Enter keys for deselection
+  function handleKeyDown(event) {
+    if ((event.key === 'Escape' || event.key === 'Enter') && !$isLinkMode) {
+      selectedCells.set(new Set());
+    }
+  }
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('keydown', handleKeyDown);
+  }
 
   // Check if selected cells can be linked
   $: canLinkCells = (() => {
@@ -132,17 +143,12 @@
   // For row numbers
   const maxRows = 21; // global, as per your requirement
   $: globalRowNumbers = Array.from({ length: maxRows }, (_, i) => maxRows - i);
+
+  $: cellGroups = getCellGroups($leftTableStore, $middleTableStore, $mainTableStore);
 </script>
 
 <main class="h-screen bg-sky-50 p-0 flex flex-col overflow-auto">
-  <Header title="Lab Tool">
-    <HeaderButton
-      slot="header-button"
-      onClick={handleLinkCells}
-      disabled={!canLinkCells}
-      count={$selectedCells.size}
-    />
-  </Header>
+  <Header title="Lab Tool" />
 
   <div class="flex-1 flex flex-col justify-end pt-28 pb-9 px-12">
     <div class="grid tables-row w-full min-w-0"
