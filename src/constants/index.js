@@ -15,8 +15,7 @@ export const COLORS = {
     REGULAR: 'text-slate-700'
   },
   BACKGROUND: {
-    EVEN: 'white',
-    ODD: 'var(--color-sky-50)'
+    DEFAULT: 'white'
   }
 };
 

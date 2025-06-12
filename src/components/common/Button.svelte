@@ -5,6 +5,7 @@
   export let className = '';
   export let type = 'button';
   export let icon = ''; // Path to your SVG file
+  export let iconClass = '';
   export let color = 'sky';
   const dispatch = createEventDispatcher();
 
@@ -68,7 +69,7 @@
   on:click={(e) => { if (!disabled) dispatch('click', e); }}
 >
   {#if icon}
-    <svelte:component this={icon} class={`w-4 h-4`} />
+    <svelte:component this={icon} className={iconClass ? iconClass : 'w-4 h-4'} />
   {/if}
   <slot />
 </button> 

@@ -24,8 +24,13 @@
   }
 
   function selectGroup(groupName) {
-    if (groupName === 'linked-plates' || $selectedGroup === groupName) {
+    if (groupName === 'linked-plates') {
       selectedGroup.set(null);
+      showDropdown = false;
+      return;
+    }
+    // If clicking the same group, just close the dropdown
+    if ($selectedGroup === groupName) {
       showDropdown = false;
       return;
     }
@@ -145,38 +150,40 @@
   </span>
   <div class="relative group-dropdown">
     <button
-      class="flex items-center gap-2 border rounded px-2 py-1 bg-white min-w-[160px] hover:bg-slate-50 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+      class="flex items-center gap-2 border rounded px-2 py-1 bg-white w-[200px] hover:bg-slate-50 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed justify-between"
       on:click={handleDropdownToggle}
       type="button"
       disabled={Object.keys(cellGroups).length === 0 || $isLinkMode}
     >
-      {#if $selectedGroup && cellGroups[$selectedGroup]}
-        {#if renamingGroup}
-          <span class="w-5 h-5 rounded inline-block border border-slate-300 mr-1" style="background-color: {getGroupColor(cellGroups[$selectedGroup].color)}"></span>
-          <input
-            bind:this={renameInput}
-            class="px-0.5 py-0.5 w-28 text-sm font-normal outline-none bg-transparent"
-            style="border: none; box-shadow: none; font-size: 1rem; min-width: 80px; max-width: 160px;"
-            value={renameValue}
-            on:input={handleRenameInput}
-            on:keydown={(e) => e.key === 'Enter' && finishRename()}
-            on:blur={finishRename}
-          />
+      <span class="flex items-center gap-2 flex-1 min-w-0">
+        {#if $selectedGroup && cellGroups[$selectedGroup]}
+          {#if renamingGroup}
+            <span class="w-5 h-5 rounded inline-block border border-slate-300 mr-1" style="background-color: {getGroupColor(cellGroups[$selectedGroup].color)}"></span>
+            <input
+              bind:this={renameInput}
+              class="px-0.5 py-0.5 w-28 text-sm font-normal outline-none bg-transparent truncate"
+              style="border: none; box-shadow: none; font-size: 1rem; min-width: 80px; max-width: 160px;"
+              value={renameValue}
+              on:input={handleRenameInput}
+              on:keydown={(e) => e.key === 'Enter' && finishRename()}
+              on:blur={finishRename}
+            />
+          {:else}
+            <span class="w-5 h-5 rounded inline-block border border-slate-300 mr-1" style="background-color: {getGroupColor(cellGroups[$selectedGroup].color)}"></span>
+            <span class="truncate">{$selectedGroup}</span>
+          {/if}
         {:else}
-          <span class="w-5 h-5 rounded inline-block border border-slate-300 mr-1" style="background-color: {getGroupColor(cellGroups[$selectedGroup].color)}"></span>
-          <span>{$selectedGroup}</span>
+          <svelte:component this={linked} className="w-5 h-5 text-slate-500" />
+          <span class="text-slate-500 truncate">Linked plates</span>
         {/if}
-      {:else}
-        <svelte:component this={linked} class="w-5 h-5 text-sky-500" />
-        <span class="text-slate-500">Linked plates</span>
-      {/if}
-      <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+      </span>
+      <svg class="w-4 h-4 ml-1 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
     </button>
     {#if showDropdown}
       <div
         role="menu"
         tabindex="0"
-        class="absolute left-0 mt-1 w-full bg-white border border-slate-200 rounded shadow z-10 py-2 max-h-60 overflow-auto"
+        class="absolute left-0 mt-1 w-[200px] bg-white border border-slate-200 rounded shadow z-10 py-2 max-h-60 overflow-auto"
         on:click|self={() => showDropdown = false}
         on:keydown={(e) => e.key === 'Escape' && (showDropdown = false)}
       >
@@ -187,8 +194,8 @@
           on:click={() => selectGroup('linked-plates')}
           on:keydown={(e) => e.key === 'Enter' && selectGroup('linked-plates')}
         >
-          <svelte:component this={linked} class="w-5 h-5 text-sky-500" />
-          <span class="text-slate-500">Linked plates</span>
+          <svelte:component this={linked} className="w-5 h-5 text-slate-500 flex-shrink-0" />
+          <span class="text-slate-500 truncate">Linked plates</span>
         </div>
         {#each Object.entries(cellGroups) as [groupName, group]}
           <div
@@ -198,8 +205,8 @@
             on:click={() => selectGroup(groupName)}
             on:keydown={(e) => e.key === 'Enter' && selectGroup(groupName)}
           >
-            <span class="w-5 h-5 rounded border border-slate-300" style="background-color: {getGroupColor(group.color)}"></span>
-            <span>{groupName}</span>
+            <span class="w-5 h-5 rounded border border-slate-300 flex-shrink-0" style="background-color: {getGroupColor(group.color)}"></span>
+            <span class="truncate">{groupName}</span>
           </div>
         {/each}
         {#if Object.keys(cellGroups).length === 0}

@@ -9,6 +9,7 @@
   
   // Track the next color index to use
   let nextColorIndex = 0;
+  let nextGroupNumber = 1;
   const groupColors = ['#10b981', '#f59e0b', '#6366f1', '#ec4899', '#8b5cf6'];
 
   // Handle ESC and Enter keys for deselection
@@ -106,7 +107,8 @@
       groupColor = existingGroupColor;
     } else {
       // Create new group with next color in sequence
-      groupName = `Group ${Date.now()}`;
+      groupName = `Group${nextGroupNumber}`;
+      nextGroupNumber++;
       groupColor = groupColors[nextColorIndex];
       nextColorIndex = (nextColorIndex + 1) % groupColors.length;
     }

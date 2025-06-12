@@ -2,14 +2,7 @@
   export let className = "";
 </script>
 
-<svg
-  class={className}
-  width="16"
-  height="16"
-  viewBox="0 0 16 16"
-  fill="none"
-  xmlns="http://www.w3.org/2000/svg"
->
+<svg class={className} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
   <g clip-path="url(#clip0_187_1845)">
     <path d="M4.85778e-06 2.5L0 0.5C0 0.223858 0.223858 0 0.5 0C0.776142 0 1 0.223858 1 0.5L1 2.5C1 2.77614 1.22386 3 1.5 3H14.5C14.7761 3 15 2.77614 15 2.5L15 0.5C15 0.223858 15.2239 0 15.5 0C15.7761 0 16 0.223858 16 0.5L16 2.5C16 3.32843 15.3284 4 14.5 4H1.5C0.671578 4 4.85778e-06 3.32843 4.85778e-06 2.5Z" fill="currentColor"/>
     <path d="M2 4.5V3.5H3V4.5C3 4.77614 3.22386 5 3.5 5H12.5C12.7761 5 13 4.77614 13 4.5V3.5H14V4.5C14 5.32843 13.3284 6 12.5 6H3.5C2.67157 6 2 5.32843 2 4.5Z" fill="currentColor"/>

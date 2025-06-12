@@ -3,7 +3,9 @@
     import CellInfoBar from './CellInfoBar.svelte';
     import GroupInfoBar from './GroupInfoBar.svelte';
     import Button from '../common/Button.svelte';
-      import addlink from '../icons/addlink.svelte';
+    import Modal from '../common/Modal.svelte';
+    import addlink from '../icons/addlink.svelte';
+    import unlink from '../icons/unlink.svelte';
     import { selectedCells, leftTableStore, middleTableStore, mainTableStore, getCellGroups, isLinkMode, selectedCellData, selectedGroup } from '../../stores/tableStore';
     import { getStoreByCellKey } from '../../utils/cellUtils';
     import { CELL_STATES } from '../../constants';
@@ -32,6 +34,7 @@
     // Link Cells handler
     const groupColors = ['#10b981', '#f59e0b', '#6366f1', '#ec4899', '#8b5cf6'];
     let nextColorIndex = 0;
+    let nextGroupNumber = 1;
     function handleLinkCells() {
       // If we're in link mode and have selected cells, perform the linking
       if ($isLinkMode && $selectedCells.size >= 2) {
@@ -65,7 +68,8 @@
           groupName = existingGroup;
           groupColor = existingGroupColor;
         } else {
-          groupName = `Group ${Date.now()}`;
+          groupName = `Group${nextGroupNumber}`;
+          nextGroupNumber++;
           groupColor = groupColors[nextColorIndex];
           nextColorIndex = (nextColorIndex + 1) % groupColors.length;
         }
@@ -107,20 +111,31 @@
         return $selectedCellData && $selectedCellData.text && $selectedCellData.text.trim();
       }
       
-      // Check if there are any non-empty cells in any table
-      const hasNonEmptyCells = Object.values($leftTableStore).some(cell => cell.text && cell.text.trim()) ||
-                              Object.values($middleTableStore).some(cell => cell.text && cell.text.trim()) ||
-                              Object.values($mainTableStore).some(cell => cell.text && cell.text.trim());
+      // Count cells with content across all tables
+      let cellsWithContent = 0;
+      const allStores = [
+        { data: $leftTableStore },
+        { data: $middleTableStore },
+        { data: $mainTableStore }
+      ];
       
-      // If there are no non-empty cells anywhere, disable the button
-      if (!hasNonEmptyCells) return false;
+      allStores.forEach(({ data }) => {
+        Object.values(data).forEach(cell => {
+          if (cell.text && cell.text.trim()) {
+            cellsWithContent++;
+          }
+        });
+      });
+      
+      // If there are fewer than 2 cells with content, disable the button
+      if (cellsWithContent < 2) return false;
       
       // If a cell is selected, check if it has content
       if ($selectedCellData) {
         return $selectedCellData.text && $selectedCellData.text.trim();
       }
       
-      // If no cell is selected but there are non-empty cells, enable the button
+      // If no cell is selected but there are enough cells with content, enable the button
       return true;
     })();
     $: canUnlink = $selectedCellData && $selectedCellData.linked;
@@ -197,6 +212,10 @@
       // Clear selection
       selectedCells.set(new Set());
     }
+  
+    let showTestModal = false;
+    function handleTestCancel() { showTestModal = false; }
+    function handleTestAccept() { showTestModal = false; }
   </script>
   
   <header class={cn(
@@ -220,6 +239,22 @@
         >
           {$isLinkMode ? 'Link Selected Cells' : 'Start Linking Cells'}
         </Button>
+        <Button color="orange" on:click={() => showTestModal = true}>
+          Test Modal
+        </Button>
       </div>
     </div>
-  </header> 
+  </header>
+  
+  {#if showTestModal}
+    <Modal
+      icon={unlink}
+      color="orange"
+      cancelText="Cancel"
+      acceptText="Unlink"
+      on:cancel={handleTestCancel}
+      on:accept={handleTestAccept}
+    >
+      Are you sure you want to unlink this plate/group?
+    </Modal>
+  {/if} 

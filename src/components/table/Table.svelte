@@ -95,7 +95,7 @@
                 groupColor={cellData.groupColor || ""}
                 text={cellData.text || ""}
                 cellKey={cellKey}
-                bgColor={row % 2 === 0 ? 'white' : 'var(--color-sky-50)'}
+                bgColor="white"
                 isTopCell={row === (Array.isArray(rows) ? rows[col] : rows) - 1}
                 col={col}
               />
