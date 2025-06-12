@@ -17,7 +17,7 @@ export function parseCellKey(cellKey) {
   return { fridge, row: parseInt(row), col: parseInt(col) };
 }
 
-export function getCellClass({ state, linked, outFridge, groupHover, isSelected, isDisabled }) {
+export function getCellClass({ state, linked, outFridge, groupHover, isSelected, isDisabled, isSelectedGroup }) {
   return cn(
     'cell flex items-center w-full h-full min-h-[32px] max-h-[48px] min-w-0 relative text-left overflow-visible box-border border',
     {
@@ -33,7 +33,7 @@ export function getCellClass({ state, linked, outFridge, groupHover, isSelected,
       'font-bold': isSelected && state !== CELL_STATES.EMPTY,
       'font-normal': !isSelected || state === CELL_STATES.EMPTY,
       'italic': outFridge,
-      'bg-sky-100': !linked && state === CELL_STATES.HOVER,
+      'bg-sky-100': (!linked && state === CELL_STATES.HOVER) || isSelectedGroup,
       'bg-white': isSelected && state === CELL_STATES.EMPTY,
       'opacity-50 cursor-not-allowed': isDisabled,
       'hover:bg-sky-100': !isDisabled && !linked && state === CELL_STATES.EMPTY
@@ -54,10 +54,10 @@ export function getGroupColorHex(colorName) {
   return GROUP_COLOR_HEX[colorName] || colorName;
 }
 
-export function getCellStyle({ state, linked, groupHover, groupColor, bgColor, isSelected, isDisabled }) {
+export function getCellStyle({ state, linked, groupHover, groupColor, bgColor, isSelected, isDisabled, isSelectedGroup }) {
   let style = '';
   const groupColorHex = getGroupColorHex(groupColor);
-  if (linked && (state === CELL_STATES.HOVER || (isSelected && state !== CELL_STATES.EMPTY) || groupHover)) {
+  if ((linked && (state === CELL_STATES.HOVER || (isSelected && state !== CELL_STATES.EMPTY) || groupHover)) || isSelectedGroup) {
     style += `background-color: color-mix(in srgb, ${groupColorHex} 15%, ${bgColor});`;
   } else {
     style += `background: ${bgColor};`;

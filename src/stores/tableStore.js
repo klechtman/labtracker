@@ -85,3 +85,6 @@ export const selectedCellData = derived(
     return store[cellKey] || null;
   }
 );
+
+// Store for the currently selected group (for group highlighting)
+export const selectedGroup = writable(null);

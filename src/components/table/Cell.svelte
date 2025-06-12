@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher, getContext } from 'svelte';
   import { CELL_STATES, GROUP_COLOR_HEX } from '../../constants';
-  import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode } from '../../stores/tableStore';
+  import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup } from '../../stores/tableStore';
   import { hoveredGroup } from '../../stores/hoverStore';
   import { cn } from '../../lib/utils';
   import { updateCellName, getStoreByCellKey, getCellClass, getCellStyle } from '../../utils/cellUtils';
@@ -22,6 +22,8 @@
   export let isTopCell = false;
   export let col = null;
 
+  $: isSelectedGroup = linked && $selectedGroup === groupName;
+
   // Make text reactive to store changes
   $: {
     const store = getStoreByCellKey(cellKey);
@@ -35,18 +37,18 @@
   let inputElement;
   let isBlurFromTopBar = false;
 
-  // Start editing when cell is selected and not in link mode
-  $: if ($selectedCells.has(cellKey) && !$isLinkMode && !isEditing) {
+  // Add a computed variable to lock down interaction if a group is selected
+  $: isGroupSelectionMode = Boolean($selectedGroup);
+
+  // Start editing when cell is selected and not in link mode or group selection mode
+  $: if ($selectedCells.has(cellKey) && !$isLinkMode && !isEditing && !isSelectedGroup && !isGroupSelectionMode) {
     isEditing = true;
-    // Focus the input element after a brief delay to ensure it's mounted
     setTimeout(() => {
       if (inputElement) {
         inputElement.focus();
-        // Only select all text if the cell is empty
         if (!text.trim()) {
           inputElement.select();
         } else {
-          // Place cursor at the end for non-empty cells
           inputElement.selectionStart = inputElement.selectionEnd = text.length;
         }
       }
@@ -70,19 +72,7 @@
   $: groupHover = linked && $hoveredGroup === groupName;
 
   // Get cell class and style using utility functions
-  $: selectedGroup = (() => {
-    if (!$isLinkMode || $selectedCells.size === 0) return null;
-    for (const key of $selectedCells) {
-      const store = getStoreByCellKey(key);
-      const cellData = store.get(key) || {};
-      if (cellData.linked) {
-        return cellData.groupName;
-      }
-    }
-    return null;
-  })();
-
-  $: isFromDifferentGroup = $isLinkMode && selectedGroup && linked && groupName !== selectedGroup;
+  $: isFromDifferentGroup = $isLinkMode && $selectedGroup && linked && groupName !== $selectedGroup;
 
   $: cellClass = getCellClass({ 
     state, 
@@ -90,7 +80,8 @@
     outFridge, 
     groupHover, 
     isSelected: $selectedCells.has(cellKey),
-    isDisabled: ($isLinkMode && !text.trim() && !linked) || isFromDifferentGroup
+    isDisabled: ($isLinkMode && !text.trim() && !linked) || isFromDifferentGroup,
+    isSelectedGroup
   });
   $: cellStyle = getCellStyle({ 
     state, 
@@ -99,7 +90,8 @@
     groupColor, 
     bgColor, 
     isSelected: $selectedCells.has(cellKey),
-    isDisabled: ($isLinkMode && !text.trim() && !linked) || isFromDifferentGroup
+    isDisabled: ($isLinkMode && !text.trim() && !linked) || isFromDifferentGroup,
+    isSelectedGroup
   });
 
   function setState(newState) {
@@ -237,15 +229,16 @@
   class={cellClass}
   data-cell-key={cellKey}
   style={`min-height: var(--cell-min-height, 32px); max-height: var(--cell-max-height, 48px); ${cellStyle}`}
-  on:mouseover={handleMouseEnter}
-  on:mouseout={handleMouseLeave}
-  on:mousedown={handleMouseDown}
-  on:click={handleClick}
-  on:keydown={handleKeyDown}
-  on:focus={handleMouseEnter}
-  on:blur={handleBlur}
-  on:mouseenter={() => setHoveredCol(col)}
-  on:mouseleave={() => setHoveredCol(null)}
+  on:mouseover={!isGroupSelectionMode ? handleMouseEnter : undefined}
+  on:mouseout={!isGroupSelectionMode ? handleMouseLeave : undefined}
+  on:mousedown={!isGroupSelectionMode ? handleMouseDown : undefined}
+  on:click={!isGroupSelectionMode ? handleClick : undefined}
+  on:keydown={!isGroupSelectionMode ? handleKeyDown : undefined}
+  on:focus={!isGroupSelectionMode ? handleMouseEnter : undefined}
+  on:blur={!isGroupSelectionMode ? handleBlur : undefined}
+  on:mouseenter={!isGroupSelectionMode ? () => setHoveredCol(col) : undefined}
+  on:mouseleave={!isGroupSelectionMode ? () => setHoveredCol(null) : undefined}
+  style:cursor={isGroupSelectionMode ? 'not-allowed' : undefined}
 >
   {#if isTopCell && hoveredCol.value === col}
     <div class={cn(
