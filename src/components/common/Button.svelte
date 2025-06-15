@@ -1,6 +1,8 @@
 <script>
   import { cn } from '../../lib/utils';
   import { createEventDispatcher } from 'svelte';
+  import { colorStyles } from '../../lib/theme/colors';
+  
   export let disabled = false;
   export let className = '';
   export let type = 'button';
@@ -9,51 +11,12 @@
   export let color = 'sky';
   const dispatch = createEventDispatcher();
 
-  const colorMap = {
-    green: {
-      text: "text-green-600",
-      border: "border-green-600",
-      hoverBg: "hover:bg-green-50",
-      icon: "text-green-600",
-    },
-    orange: {
-      text: "text-orange-600",
-      border: "border-orange-600",
-      hoverBg: "hover:bg-orange-50",
-      icon: "text-orange-600",
-    },
-    red: {
-      text: "text-pink-600",
-      border: "border-pink-600",
-      hoverBg: "hover:bg-pink-50",
-      icon: "text-pink-600",
-    },
-    sky: {
-      text: "text-sky-600",
-      border: "border-sky-600",
-      hoverBg: "hover:bg-sky-50",
-      icon: "text-sky-600",
-    },
-    purple: {
-      text: "text-purple-600",
-      border: "border-purple-600",
-      hoverBg: "hover:bg-purple-50",
-      icon: "text-purple-600",
-    },
-    slate: {
-      text: "text-slate-400",
-      border: "border-slate-300",
-      bg: "bg-slate-100",
-      icon: "text-slate-400",
-    },
-  };
-
   $: colorClasses = disabled
     ? "text-slate-400 border-slate-300 bg-slate-100 cursor-not-allowed"
-    : `${colorMap[color]?.text || colorMap.sky.text} 
-       ${colorMap[color]?.border || colorMap.sky.border} 
+    : `${colorStyles[color]?.text || colorStyles.sky.text} 
+       ${colorStyles[color]?.border || colorStyles.sky.border} 
        bg-white 
-       ${colorMap[color]?.hoverBg || colorMap.sky.hoverBg} 
+       ${colorStyles[color]?.hoverBg || colorStyles.sky.hoverBg} 
        cursor-pointer`;
 </script>
 

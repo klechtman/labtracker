@@ -153,16 +153,18 @@
     {/if}
   </span>
   <div class="flex items-center gap-2 cell-info-bar">
-    <span class="w-6 h-6 rounded bg-slate-200 border border-slate-300 flex items-center justify-center" style="background-color: {getGroupColor(cellData.groupColor)}"></span>
-    <input
-      type="text"
-      class="border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-sky-400 bg-white min-w-[160px] disabled:bg-slate-100 disabled:cursor-not-allowed"
-      placeholder="Plate name"
-      value={cellData.text || ''}
-      on:input={handleInput}
-      on:keydown={handleKeyDown}
-      disabled={$isLinkMode || !cellKey}
-    />
+    <div class="relative flex items-center min-w-[160px]">
+      <span class="absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded bg-slate-200 border border-slate-300" style="background-color: {getGroupColor(cellData.groupColor)}"></span>
+      <input
+        type="text"
+        class="border rounded pl-9 pr-2 py-1 focus:outline-none focus:ring-2 focus:ring-sky-400 bg-white min-w-[160px] disabled:bg-slate-100 disabled:cursor-not-allowed"
+        placeholder="Plate name"
+        value={cellData.text || ''}
+        on:input={handleInput}
+        on:keydown={handleKeyDown}
+        disabled={$isLinkMode || !cellKey}
+      />
+    </div>
     <Button 
       icon={incubator} 
       color="purple" 
@@ -171,7 +173,7 @@
     />
     <Button 
       icon={unlink} 
-      color="orange" 
+      color="amber" 
       on:click={handleUnlink}
       disabled={!canUnlink || $isLinkMode}
     />

@@ -1,48 +1,26 @@
 <script>
-  import { colorStyles } from '../../styles/colorstyles.js';
+  import { colorStyles } from '../../lib/theme/colors';
   import Button from './Button.svelte';
   import { createEventDispatcher } from 'svelte';
-  import X from '../icons/X.svelte';
-  import unlinkIcon from '../icons/unlink.svelte';
 
-  export let icon; // Svelte component for the icon
+  export let icon; // Svelte component for the icon in the circle
   export let color = 'sky'; // Color theme
   export let cancelText = 'Cancel';
   export let acceptText = 'Accept';
   export let acceptColor = null; // Optionally override accept button color
+  export let cancelIcon = null; // Svelte component for cancel button icon
+  export let acceptIcon = null; // Svelte component for accept button icon
   export let disabled = false;
 
   const dispatch = createEventDispatcher();
 
   $: theme = colorStyles[color] || colorStyles.sky;
   $: acceptBtnColor = acceptColor || color;
-
-  // Map theme.text to hex for inline SVG color
-  const iconHexMap = {
-    green: '#16a34a', // Tailwind green-600
-    orange: '#ea580c', // Tailwind orange-600
-    red: '#db2777', // Tailwind pink-600
-    sky: '#0284c7', // Tailwind sky-600
-    purple: '#7c3aed', // Tailwind purple-600
-    slate: '#94a3b8', // Tailwind slate-400
-  };
-  $: iconColor = iconHexMap[color] || iconHexMap.sky;
-
-  // Lightest color for gradient and icon circle
-  const colorLightestMap = {
-    sky: '#e0f2fe',
-    green: '#dcfce7',
-    orange: '#ffedd5',
-    red: '#ffe4e6',
-    purple: '#ede9fe',
-    slate: '#f1f5f9',
-  };
-  $: lightest = colorLightestMap[color] || colorLightestMap.sky;
 </script>
 
 <div class="modal-bg">
-  <div class="modal-card" style="background: linear-gradient(to bottom, {theme.lightest}, #fff 90%);">
-    <div class="modal-icon-circle" style="background: {theme.mid}; border: 2px solid {theme.borderLight};">
+  <div class={`modal-card bg-gradient-to-b ${theme.gradientFrom} ${theme.gradientTo} border ${theme.borderLight}`}>
+    <div class={`modal-icon-circle ${theme.mid} border-2 ${theme.borderLight}`}>
       {#if icon}
         <svelte:component this={icon} className={`${theme.icon} w-8 h-8`} />
       {/if}
@@ -51,10 +29,10 @@
       <slot />
     </div>
     <div class="modal-actions">
-      <Button color="slate" icon={X} iconClass="w-4 h-4" on:click={() => dispatch('cancel')}>
+      <Button color="sky" icon={cancelIcon} iconClass="w-4 h-4" on:click={() => dispatch('cancel')}>
         {cancelText}
       </Button>
-      <Button color={acceptBtnColor} icon={unlinkIcon} iconClass="w-4 h-4" on:click={() => dispatch('accept')} disabled={disabled}>
+      <Button color={acceptBtnColor} icon={acceptIcon} iconClass="w-4 h-4" on:click={() => dispatch('accept')} disabled={disabled}>
         {acceptText}
       </Button>
     </div>

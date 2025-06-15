@@ -16,6 +16,11 @@
   function handleKeyDown(event) {
     // Ignore if focused in an input or textarea
     if (['INPUT', 'TEXTAREA'].includes(event.target.tagName)) return;
+    
+    // Check if any modal is open by looking for the modal overlay
+    const isModalOpen = document.querySelector('.modal-overlay') !== null;
+    if (isModalOpen) return; // Don't handle any keys if modal is open
+    
     if (["Escape", "Delete", "Backspace"].includes(event.key)) {
       selectedCells.set(new Set());
       if ($isLinkMode) {

@@ -8,15 +8,23 @@
   import erase from '../icons/erase.svelte';
   import { onMount } from 'svelte';
   import { CELL_STATES } from '../../constants';
+  import { clickOutside } from '../../lib/clickOutside.js';
 
   let showDropdown = false;
   let cellGroups = {};
   let renamingGroup = false;
   let renameValue = '';
   let renameInput;
+  let ignoreNextBlur = false;
 
   // Update cellGroups reactively
   $: cellGroups = getCellGroups($leftTableStore ?? {}, $middleTableStore ?? {}, $mainTableStore ?? {});
+
+  // Watch for link mode changes
+  $: if ($isLinkMode && $selectedGroup) {
+    // When entering link mode, ensure the current group is selected
+    selectedGroup.set($selectedGroup);
+  }
 
   function getGroupColor(color) {
     if (!color) return '#cbd5e1';
@@ -39,7 +47,7 @@
   }
 
   function handleDropdownToggle() {
-    if (Object.keys(cellGroups).length === 0) return;
+    if (Object.keys(cellGroups).length === 0 || renamingGroup) return;
     showDropdown = !showDropdown;
   }
 
@@ -49,6 +57,10 @@
   }
 
   function startRename() {
+    if (renamingGroup) {
+      finishRename();
+      return;
+    }
     if ($selectedGroup && cellGroups[$selectedGroup]) {
       renamingGroup = true;
       renameValue = $selectedGroup;
@@ -63,6 +75,14 @@
 
   function handleRenameInput(e) {
     renameValue = e.target.value;
+  }
+
+  function handleRenameBlur() {
+    if (ignoreNextBlur) {
+      ignoreNextBlur = false;
+      return;
+    }
+    finishRename();
   }
 
   function finishRename() {
@@ -88,14 +108,20 @@
         }
       });
     });
+    // Exit group mode after renaming
     selectedGroup.set(null);
     renamingGroup = false;
     showDropdown = false;
   }
 
+  function cancelRename() {
+    renamingGroup = false;
+    renameValue = '';
+  }
+
   function unlinkAllInGroup() {
     const group = $selectedGroup;
-    if (!group) return;
+    if (!group || renamingGroup) return;
     const allStores = [
       { store: leftTableStore, data: $leftTableStore },
       { store: middleTableStore, data: $middleTableStore },
@@ -119,7 +145,7 @@
 
   function deleteAllInGroup() {
     const group = $selectedGroup;
-    if (!group) return;
+    if (!group || renamingGroup) return;
     const allStores = [
       { store: leftTableStore, data: $leftTableStore },
       { store: middleTableStore, data: $middleTableStore },
@@ -151,9 +177,12 @@
   <div class="relative group-dropdown">
     <button
       class="flex items-center gap-2 border rounded px-2 py-1 bg-white w-[200px] hover:bg-slate-50 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed justify-between"
+      class:ring-2={renamingGroup}
+      class:ring-sky-400={renamingGroup}
+      on:mousedown={() => { ignoreNextBlur = true; }}
       on:click={handleDropdownToggle}
       type="button"
-      disabled={Object.keys(cellGroups).length === 0 || $isLinkMode}
+      disabled={Object.keys(cellGroups).length === 0 || $isLinkMode || renamingGroup}
     >
       <span class="flex items-center gap-2 flex-1 min-w-0">
         {#if $selectedGroup && cellGroups[$selectedGroup]}
@@ -165,8 +194,11 @@
               style="border: none; box-shadow: none; font-size: 1rem; min-width: 80px; max-width: 160px;"
               value={renameValue}
               on:input={handleRenameInput}
-              on:keydown={(e) => e.key === 'Enter' && finishRename()}
-              on:blur={finishRename}
+              on:keydown={(e) => {
+                if (e.key === 'Enter') finishRename();
+                if (e.key === 'Escape') cancelRename();
+              }}
+              on:blur={handleRenameBlur}
             />
           {:else}
             <span class="w-5 h-5 rounded inline-block border border-slate-300 mr-1" style="background-color: {getGroupColor(cellGroups[$selectedGroup].color)}"></span>
@@ -174,13 +206,14 @@
           {/if}
         {:else}
           <svelte:component this={linked} className="w-5 h-5 text-slate-500" />
-          <span class="text-slate-500 truncate">Linked plates</span>
+          <span class="text-slate-500 truncate">No group selected</span>
         {/if}
       </span>
       <svg class="w-4 h-4 ml-1 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
     </button>
     {#if showDropdown}
       <div
+        use:clickOutside={() => showDropdown = false}
         role="menu"
         tabindex="0"
         class="absolute left-0 mt-1 w-[200px] bg-white border border-slate-200 rounded shadow z-10 py-2 max-h-60 overflow-auto"
@@ -192,10 +225,10 @@
           tabindex="0"
           class="flex items-center gap-2 px-3 py-1 cursor-pointer hover:bg-slate-100 w-full text-left"
           on:click={() => selectGroup('linked-plates')}
-          on:keydown={(e) => e.key === 'Enter' && selectGroup('linked-plates')}
+          on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && selectGroup('linked-plates')}
         >
           <svelte:component this={linked} className="w-5 h-5 text-slate-500 flex-shrink-0" />
-          <span class="text-slate-500 truncate">Linked plates</span>
+          <span class="text-slate-500 truncate">No group selected</span>
         </div>
         {#each Object.entries(cellGroups) as [groupName, group]}
           <div
@@ -203,7 +236,7 @@
             tabindex="0"
             class="flex items-center gap-2 px-3 py-1 cursor-pointer hover:bg-slate-100 w-full text-left"
             on:click={() => selectGroup(groupName)}
-            on:keydown={(e) => e.key === 'Enter' && selectGroup(groupName)}
+            on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && selectGroup(groupName)}
           >
             <span class="w-5 h-5 rounded border border-slate-300 flex-shrink-0" style="background-color: {getGroupColor(group.color)}"></span>
             <span class="truncate">{groupName}</span>
@@ -218,19 +251,20 @@
   <Button 
       icon={rename} 
       color="purple"
-      disabled={!$selectedGroup || $isLinkMode}
+      disabled={!$selectedGroup}
+      on:mousedown={() => { ignoreNextBlur = true; }}
       on:click={startRename}
     />
     <Button 
       icon={unlink} 
-      color="orange"
-      disabled={!$selectedGroup || $isLinkMode}
+      color="amber"
+      disabled={!$selectedGroup || renamingGroup}
       on:click={unlinkAllInGroup}
     />
     <Button 
       icon={erase} 
       color="red"
-      disabled={!$selectedGroup || $isLinkMode}
+      disabled={!$selectedGroup || renamingGroup}
       on:click={deleteAllInGroup}
     />
 </div> 
