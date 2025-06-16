@@ -1,23 +1,5 @@
 import { writable, derived } from 'svelte/store';
-
-// Table configurations
-export const tableConfigs = {
-  left: {
-    name: "Cytomat5",
-    rows: 21,
-    columns: 5
-  },
-  middle: {
-    name: "Cytomat2",
-    rows: 7,
-    columns: 2
-  },
-  main: {
-    name: "Cytomat10 Hotel",
-    rows: [10, 7, 7, 7, 7, 7, 10, 21, 21, 21],
-    columns: 10
-  }
-};
+import { tableConfigs } from '../constants';
 
 // Create stores for each table's cells
 const createTableStore = () => {

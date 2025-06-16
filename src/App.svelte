@@ -1,16 +1,18 @@
 <script>
   import Cell from './components/table/Cell.svelte';
   import Table from './components/table/Table.svelte';
-  import { tableConfigs, selectedCells, leftTableStore, middleTableStore, mainTableStore, getCellGroups, isLinkMode, selectedGroup } from './stores/tableStore';
+  import { selectedCells, leftTableStore, middleTableStore, mainTableStore, getCellGroups, isLinkMode, selectedGroup } from './stores/tableStore';
   import { CELL_STATES } from './constants';
   import Header from './components/topbar/Header.svelte';
   import RowNumber from './components/table/RowNumber.svelte';
   import Button from './components/common/Button.svelte';
+  import { groupColors, groupColorsHex } from './constants';
+  import { tableConfigs } from './constants';
+  import { canLinkCells, handleLinkCells } from './logic/groupLogic';
   
   // Track the next color index to use
   let nextColorIndex = 0;
   let nextGroupNumber = 1;
-  const groupColors = ['#10b981', '#f59e0b', '#6366f1', '#ec4899', '#8b5cf6'];
 
   // Handle ESC and Enter keys for deselection
   function handleKeyDown(event) {
@@ -34,112 +36,6 @@
 
   if (typeof window !== 'undefined') {
     window.addEventListener('keydown', handleKeyDown);
-  }
-
-  // Check if selected cells can be linked
-  $: canLinkCells = (() => {
-    const selected = $selectedCells;
-    if (selected.size < 2) return false;
-
-    let existingGroup = null;
-    let hasUnlinkedCell = false;
-    let hasEmptyCell = false;
-    
-    for (const cellKey of selected) {
-      const [fridge] = cellKey.split('-');
-      const store = fridge === 'left' ? leftTableStore : 
-                   fridge === 'middle' ? middleTableStore : 
-                   mainTableStore;
-      
-      const cellData = store.get(cellKey) || {};
-      
-      // Check if any cell is empty
-      if (!cellData.text || !cellData.text.trim()) {
-        hasEmptyCell = true;
-        break;
-      }
-      
-      if (cellData.linked) {
-        if (existingGroup && existingGroup !== cellData.groupName) {
-          // Found cells from different groups - cannot link
-          return false;
-        } else {
-          existingGroup = cellData.groupName;
-        }
-      } else {
-        // Found an unlinked cell - can link
-        hasUnlinkedCell = true;
-      }
-    }
-    
-    // Can link if we found an unlinked cell and no empty cells
-    return hasUnlinkedCell && !hasEmptyCell;
-  })();
-
-  // Handle linking selected cells
-  function handleLinkCells() {
-    const selected = $selectedCells;
-    if (selected.size < 2 || !canLinkCells) return;
-
-    // Check if any selected cells are already in a group
-    let existingGroup = null;
-    let existingGroupColor = null;
-    
-    selected.forEach(cellKey => {
-      const [fridge] = cellKey.split('-');
-      const store = fridge === 'left' ? leftTableStore : 
-                   fridge === 'middle' ? middleTableStore : 
-                   mainTableStore;
-      
-      const cellData = store.get(cellKey) || {};
-      
-      if (cellData.linked) {
-        // If we find a cell from a different group, prevent linking
-        if (existingGroup && existingGroup !== cellData.groupName) {
-          alert('Cannot link cells from different groups!');
-          selectedCells.set(new Set());
-          return;
-        }
-        existingGroup = cellData.groupName;
-        existingGroupColor = cellData.groupColor;
-      }
-    });
-
-    // If we found an existing group, use its properties
-    let groupName, groupColor;
-    if (existingGroup) {
-      groupName = existingGroup;
-      groupColor = existingGroupColor;
-    } else {
-      // Create new group with next color in sequence
-      groupName = `Group${nextGroupNumber}`;
-      nextGroupNumber++;
-      groupColor = groupColors[nextColorIndex];
-      nextColorIndex = (nextColorIndex + 1) % groupColors.length;
-    }
-
-    // Update all selected cells with the group info
-    selected.forEach(cellKey => {
-      const [fridge] = cellKey.split('-');
-      const store = fridge === 'left' ? leftTableStore : 
-                   fridge === 'middle' ? middleTableStore : 
-                   mainTableStore;
-      
-      // Get current cell data to preserve existing properties
-      const currentCell = store.get(cellKey) || {};
-      
-      // Update all cells, whether they were linked or not
-      store.updateCell(cellKey, {
-        ...currentCell,
-        linked: true,
-        groupName,
-        groupColor,
-        state: CELL_STATES.REGULAR // Reset state for all cells
-      });
-    });
-
-    // Clear selection
-    selectedCells.set(new Set());
   }
 
   // Create an array of table configs for rendering

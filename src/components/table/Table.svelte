@@ -1,6 +1,7 @@
 <script>
   import Cell from './Cell.svelte';
-  import { tableConfigs, leftTableStore, middleTableStore, mainTableStore, hoveredRow, selectedCells, isLinkMode } from '../../stores/tableStore';
+  import { tableConfigs } from '../../constants';
+  import { leftTableStore, middleTableStore, mainTableStore, hoveredRow, selectedCells, isLinkMode } from '../../stores/tableStore';
   import { getCellKey } from '../../utils/cellUtils';
   import { createEventDispatcher } from 'svelte';
   import { setContext } from 'svelte';

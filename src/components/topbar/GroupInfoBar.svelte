@@ -3,19 +3,25 @@
   import linked from '../icons/linked.svelte';
   import { GROUP_COLOR_HEX } from '../../constants';
   import Button from '../common/Button.svelte';
-  import rename from '../icons/rename.svelte';
   import unlink from '../icons/unlink.svelte';
   import erase from '../icons/erase.svelte';
   import { onMount } from 'svelte';
   import { CELL_STATES } from '../../constants';
   import { clickOutside } from '../../lib/clickOutside.js';
+  import Modal from '../common/Modal.svelte';
+  import check from '../icons/check.svelte';
+  import X from '../icons/X.svelte';
+  import { unlinkAllInGroup, deleteAllInGroup } from '../../logic/groupLogic';
 
   let showDropdown = false;
   let cellGroups = {};
-  let renamingGroup = false;
   let renameValue = '';
   let renameInput;
   let ignoreNextBlur = false;
+  let showGroupActionModal = false;
+  let groupActionType = null; // 'unlink' or 'delete'
+  let renamingGroupBar = false;
+  let renameHover = false;
 
   // Update cellGroups reactively
   $: cellGroups = getCellGroups($leftTableStore ?? {}, $middleTableStore ?? {}, $mainTableStore ?? {});
@@ -47,7 +53,7 @@
   }
 
   function handleDropdownToggle() {
-    if (Object.keys(cellGroups).length === 0 || renamingGroup) return;
+    if (Object.keys(cellGroups).length === 0 || renamingGroupBar) return;
     showDropdown = !showDropdown;
   }
 
@@ -56,13 +62,9 @@
     selectedGroup.set(null);
   }
 
-  function startRename() {
-    if (renamingGroup) {
-      finishRename();
-      return;
-    }
+  function startRenameBar() {
     if ($selectedGroup && cellGroups[$selectedGroup]) {
-      renamingGroup = true;
+      renamingGroupBar = true;
       renameValue = $selectedGroup;
       setTimeout(() => {
         if (renameInput) {
@@ -73,23 +75,19 @@
     }
   }
 
-  function handleRenameInput(e) {
+  function handleRenameBarInput(e) {
     renameValue = e.target.value;
   }
 
-  function handleRenameBlur() {
-    if (ignoreNextBlur) {
-      ignoreNextBlur = false;
-      return;
-    }
-    finishRename();
+  function handleRenameBarBlur() {
+    finishRenameBar();
   }
 
-  function finishRename() {
+  function finishRenameBar() {
     const oldName = $selectedGroup;
     const newName = renameValue.trim();
     if (!newName || newName === oldName) {
-      renamingGroup = false;
+      renamingGroupBar = false;
       return;
     }
     // Update all cells in all stores
@@ -108,65 +106,39 @@
         }
       });
     });
-    // Exit group mode after renaming
-    selectedGroup.set(null);
-    renamingGroup = false;
-    showDropdown = false;
+    selectedGroup.set(newName);
+    renamingGroupBar = false;
   }
 
-  function cancelRename() {
-    renamingGroup = false;
+  function cancelRenameBar() {
+    renamingGroupBar = false;
     renameValue = '';
   }
 
-  function unlinkAllInGroup() {
-    const group = $selectedGroup;
-    if (!group || renamingGroup) return;
-    const allStores = [
-      { store: leftTableStore, data: $leftTableStore },
-      { store: middleTableStore, data: $middleTableStore },
-      { store: mainTableStore, data: $mainTableStore }
-    ];
-    allStores.forEach(({ store, data }) => {
-      Object.entries(data).forEach(([key, cell]) => {
-        if (cell.groupName === group) {
-          store.updateCell(key, {
-            ...cell,
-            linked: false,
-            groupName: '',
-            groupColor: ''
-          });
-        }
-      });
-    });
-    selectedGroup.set(null);
-    showDropdown = false;
-  }
-
-  function deleteAllInGroup() {
-    const group = $selectedGroup;
-    if (!group || renamingGroup) return;
-    const allStores = [
-      { store: leftTableStore, data: $leftTableStore },
-      { store: middleTableStore, data: $middleTableStore },
-      { store: mainTableStore, data: $mainTableStore }
-    ];
-    allStores.forEach(({ store, data }) => {
-      Object.entries(data).forEach(([key, cell]) => {
-        if (cell.groupName === group) {
-          store.updateCell(key, {
-            text: '',
-            linked: false,
-            groupName: '',
-            groupColor: '',
-            outFridge: false,
-            state: CELL_STATES.EMPTY
-          });
-        }
-      });
-    });
-    selectedGroup.set(null);
-    showDropdown = false;
+  function handleGroupAction() {
+    if (groupActionType === 'unlink') {
+      unlinkAllInGroup(
+        $selectedGroup,
+        $leftTableStore,
+        $middleTableStore,
+        $mainTableStore,
+        renamingGroupBar,
+        selectedGroup,
+        (v) => { showDropdown = v; }
+      );
+    } else if (groupActionType === 'delete') {
+      deleteAllInGroup(
+        $selectedGroup,
+        $leftTableStore,
+        $middleTableStore,
+        $mainTableStore,
+        renamingGroupBar,
+        selectedGroup,
+        (v) => { showDropdown = v; }
+      );
+    }
+    showGroupActionModal = false;
+    groupActionType = null;
   }
 </script>
 
@@ -176,34 +148,41 @@
   </span>
   <div class="relative group-dropdown">
     <button
-      class="flex items-center gap-2 border rounded px-2 py-1 bg-white w-[200px] hover:bg-slate-50 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed justify-between"
-      class:ring-2={renamingGroup}
-      class:ring-sky-400={renamingGroup}
+      class="flex items-center gap-2 border rounded px-2 py-1 bg-white w-[200px] hover:bg-slate-50 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed justify-between {renameHover ? 'rename-hover' : ''}"
       on:mousedown={() => { ignoreNextBlur = true; }}
       on:click={handleDropdownToggle}
       type="button"
-      disabled={Object.keys(cellGroups).length === 0 || $isLinkMode || renamingGroup}
+      disabled={Object.keys(cellGroups).length === 0 || $isLinkMode || renamingGroupBar}
     >
       <span class="flex items-center gap-2 flex-1 min-w-0">
         {#if $selectedGroup && cellGroups[$selectedGroup]}
-          {#if renamingGroup}
+          <span class="rename-area flex items-center gap-2 px-1 rounded cursor-text transition"
+            role="button"
+            tabindex="0"
+            on:mouseenter={() => renameHover = true}
+            on:mouseleave={() => renameHover = false}
+            on:click|stopPropagation={startRenameBar}
+            on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && startRenameBar()}
+            title="Click to rename group"
+          >
             <span class="w-5 h-5 rounded inline-block border border-slate-300 mr-1" style="background-color: {getGroupColor(cellGroups[$selectedGroup].color)}"></span>
-            <input
-              bind:this={renameInput}
-              class="px-0.5 py-0.5 w-28 text-sm font-normal outline-none bg-transparent truncate"
-              style="border: none; box-shadow: none; font-size: 1rem; min-width: 80px; max-width: 160px;"
-              value={renameValue}
-              on:input={handleRenameInput}
-              on:keydown={(e) => {
-                if (e.key === 'Enter') finishRename();
-                if (e.key === 'Escape') cancelRename();
-              }}
-              on:blur={handleRenameBlur}
-            />
-          {:else}
-            <span class="w-5 h-5 rounded inline-block border border-slate-300 mr-1" style="background-color: {getGroupColor(cellGroups[$selectedGroup].color)}"></span>
-            <span class="truncate">{$selectedGroup}</span>
-          {/if}
+            {#if renamingGroupBar}
+              <input
+                bind:this={renameInput}
+                class="px-0.5 py-0.5 w-28 text-sm font-normal outline-none bg-transparent truncate"
+                style="border: none; box-shadow: none; font-size: 1rem; min-width: 80px; max-width: 160px;"
+                value={renameValue}
+                on:input={handleRenameBarInput}
+                on:keydown={(e) => {
+                  if (e.key === 'Enter') finishRenameBar();
+                  if (e.key === 'Escape') cancelRenameBar();
+                }}
+                on:blur={handleRenameBarBlur}
+              />
+            {:else}
+              <span class="truncate">{$selectedGroup}</span>
+            {/if}
+          </span>
         {:else}
           <svelte:component this={linked} className="w-5 h-5 text-slate-500" />
           <span class="text-slate-500 truncate">No group selected</span>
@@ -249,22 +228,47 @@
     {/if}
   </div>
   <Button 
-      icon={rename} 
-      color="purple"
-      disabled={!$selectedGroup}
-      on:mousedown={() => { ignoreNextBlur = true; }}
-      on:click={startRename}
-    />
-    <Button 
       icon={unlink} 
       color="amber"
-      disabled={!$selectedGroup || renamingGroup}
-      on:click={unlinkAllInGroup}
+      disabled={!$selectedGroup || renamingGroupBar}
+      on:click={() => { groupActionType = 'unlink'; showGroupActionModal = true; }}
     />
     <Button 
       icon={erase} 
       color="red"
-      disabled={!$selectedGroup || renamingGroup}
-      on:click={deleteAllInGroup}
+      disabled={!$selectedGroup || renamingGroupBar}
+      on:click={() => { groupActionType = 'delete'; showGroupActionModal = true; }}
     />
-</div> 
+</div>
+
+{#if showGroupActionModal}
+  <Modal
+    icon={groupActionType === 'unlink' ? unlink : erase}
+    color={groupActionType === 'unlink' ? 'amber' : 'red'}
+    cancelText="Cancel"
+    acceptText={groupActionType === 'unlink' ? 'Unlink' : 'Delete'}
+    acceptColor={groupActionType === 'unlink' ? 'amber' : 'red'}
+    cancelIcon={X}
+    acceptIcon={groupActionType === 'unlink' ? unlink : erase}
+    on:cancel={() => { showGroupActionModal = false; groupActionType = null; }}
+    on:accept={handleGroupAction}
+  >
+    <div>
+      {#if groupActionType === 'unlink'}
+        Are you sure you want to unlink this group?
+      {:else if groupActionType === 'delete'}
+        Are you sure you want to delete this group?
+      {/if}
+    </div>
+  </Modal>
+{/if}
+
+<style>
+  .rename-area {
+    cursor: text;
+    user-select: none;
+  }
+  .rename-hover {
+    background: #e0f2fe !important;
+  }
+</style> 

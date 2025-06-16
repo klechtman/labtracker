@@ -10,6 +10,9 @@
     import { getStoreByCellKey } from '../../utils/cellUtils';
     import { CELL_STATES } from '../../constants';
     import { canLinkCells } from '../../logic/buttonLogic';
+    import { groupColors, groupColorsHex } from '../../constants';
+    import { unlinkCell, eraseCell } from '../../logic/groupLogic';
+    import LinkModeManager from './LinkModeManager.svelte';
   
     let showLinkGroupModal = false;
     let newGroupName = '';
@@ -47,7 +50,6 @@
     }
   
     // Link Cells handler
-    const groupColors = ['#10b981', '#f59e0b', '#6366f1', '#ec4899', '#8b5cf6'];
     let nextColorIndex = 0;
     let nextGroupNumber = 1;
     $: canLink = (() => {
@@ -244,8 +246,8 @@
     function handleModalAccept() {
       // Actually link the cells as a new group
       const groupName = newGroupName.trim();
-      const groupColor = groupColors[nextColorIndex];
-      nextColorIndex = (nextColorIndex + 1) % groupColors.length;
+      const groupColor = groupColorsHex[nextColorIndex];
+      nextColorIndex = (nextColorIndex + 1) % groupColorsHex.length;
       nextGroupNumber++;
       linkingCells.forEach(cellKey => {
         const [fridge] = cellKey.split('-');
@@ -358,28 +360,7 @@
       <div class="flex items-center justify-center flex-1">
         <GroupInfoBar />
       </div>
-      <div class="flex items-center gap-4">
-        {#if $isLinkMode}
-          <Button 
-            icon={X} 
-            color="sky" 
-            on:click={() => {
-              selectedCells.set(new Set());
-              isLinkMode.set(false);
-            }}
-          >
-            Cancel
-          </Button>
-        {/if}
-        <Button 
-          icon={addlink} 
-          color={!canLink || ($isLinkMode && !canLinkSelectedCells) ? "emerald-600" : "emerald"} 
-          on:click={handleLinkCells}
-          disabled={!canLink || ($isLinkMode && !canLinkSelectedCells)}
-        >
-          {$isLinkMode ? 'Link Selected Cells' : 'Start Linking Cells'}
-        </Button>
-      </div>
+      <LinkModeManager />
     </div>
   </header>
   
@@ -406,7 +387,7 @@
         <div class="w-full flex flex-col items-start">
           <label for="group-name-input" class="font-bold text-lg mb-1 w-full">Group Name</label>
           <div class="relative w-full max-w-xs">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded bg-slate-200 border border-slate-300" style="background-color: {groupColors[nextColorIndex]}"></span>
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded bg-slate-200 border border-slate-300" style="background-color: {groupColorsHex[nextColorIndex]}"></span>
             <input
               id="group-name-input"
               class="border rounded pl-10 pr-3 py-2 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white placeholder:text-slate-400"
