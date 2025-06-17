@@ -4,33 +4,6 @@ export const CELL_STATES = {
   HOVER: 'hover'
 };
 
-export const COLORS = {
-  BORDER: {
-    DEFAULT: 'border-slate-300',
-    SELECTED: 'border-slate-700',
-    HOVER: 'border-sky-600'
-  },
-  TEXT: {
-    EMPTY: 'text-slate-500',
-    REGULAR: 'text-slate-700'
-  },
-  BACKGROUND: {
-    DEFAULT: 'white'
-  }
-};
-
-export const STYLES = {
-  MIN_CELL_HEIGHT: '32px',
-  MAX_CELL_HEIGHT: '48px',
-  FONT: {
-    FAMILY: 'Montserrat',
-    SIZE: {
-      CELL: '12px',
-      HEADER: '14px'
-    }
-  }
-};
-
 export const groupColors = [
   'group-green',
   'group-yellow',
@@ -45,7 +18,7 @@ export const GROUP_COLOR_HEX = {
   'group-indigo': '#6366f1',
   'group-pink': '#ec4899',
   'group-purple': '#8b5cf6',
-};
+}; 
 
 // Table configurations and group color config centralized here
 export const tableConfigs = {
@@ -74,3 +47,5 @@ export const groupColorsHex = [
   '#ec4899', // pink
   '#8b5cf6', // purple
 ]; 
+
+// Cell-specific styles are now in cellStyles.js 

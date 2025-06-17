@@ -1,6 +1,7 @@
 import { CELL_STATES } from '../constants';
 import { cn } from '../lib/utils';
 import { leftTableStore, middleTableStore, mainTableStore } from '../stores/tableStore';
+import { CELL_BASE_CLASS, CELL_PADDING, CELL_STYLE_MAP } from '../constants/cellStyles';
 
 export function getCellState(state, text) {
   if (state === CELL_STATES.EMPTY) return CELL_STATES.EMPTY;
@@ -18,27 +19,48 @@ export function parseCellKey(cellKey) {
 }
 
 export function getCellClass({ state, linked, outFridge, groupHover, isSelected, isDisabled, isSelectedGroup }) {
-  return cn(
-    'cell flex items-center w-full h-full min-h-[32px] max-h-[48px] min-w-0 relative text-left overflow-visible box-border border',
-    {
-      'border-dashed': outFridge,
-      'border-solid': !outFridge,
-      'px-2': linked,
-      'px-1.5': !linked,
-      'border-slate-300': (state === CELL_STATES.EMPTY && !isSelected) || (state !== CELL_STATES.EMPTY && state !== CELL_STATES.HOVER && !outFridge),
-      'border-slate-700': outFridge || isSelected,
-      'border-sky-600': state === CELL_STATES.HOVER,
-      'text-slate-500': (state === CELL_STATES.EMPTY && !isSelected) || outFridge,
-      'text-slate-700': state !== CELL_STATES.EMPTY && !outFridge,
-      'font-bold': isSelected && state !== CELL_STATES.EMPTY,
-      'font-normal': !isSelected || state === CELL_STATES.EMPTY,
-      'italic': outFridge,
-      'bg-sky-100': (!linked && state === CELL_STATES.HOVER) || isSelectedGroup,
-      'bg-white': isSelected && state === CELL_STATES.EMPTY,
-      'opacity-50 cursor-not-allowed': isDisabled,
-      'hover:bg-sky-100': !isDisabled && !linked && state === CELL_STATES.EMPTY
-    }
-  );
+  let classes = [...CELL_BASE_CLASS];
+
+  // Padding
+  classes.push(linked ? CELL_PADDING.linked : CELL_PADDING.unlinked);
+
+  // Disabled
+  if (isDisabled) {
+    classes.push(...CELL_STYLE_MAP.disabled);
+  }
+  // OutFridge
+  else if (outFridge) {
+    classes.push(...CELL_STYLE_MAP.outFridge);
+  }
+  // Selected group
+  else if (isSelectedGroup) {
+    classes.push(...CELL_STYLE_MAP.selectedGroup);
+  }
+  // Selected and empty
+  else if (isSelected && state === CELL_STATES.EMPTY) {
+    classes.push(...CELL_STYLE_MAP.selectedEmpty);
+  }
+  // Empty
+  else if (state === CELL_STATES.EMPTY) {
+    classes.push(...CELL_STYLE_MAP.empty);
+  }
+  // Hover
+  else if (state === CELL_STATES.HOVER) {
+    classes.push(...CELL_STYLE_MAP.hover);
+  }
+  // Regular
+  else if (state === CELL_STATES.REGULAR) {
+    classes.push(...CELL_STYLE_MAP.regular);
+  }
+
+  // Selected (not empty)
+  if (isSelected && state !== CELL_STATES.EMPTY) {
+    classes.push(...CELL_STYLE_MAP.selected);
+  }
+
+  // Add more logic as needed for your app!
+
+  return classes.join(' ');
 }
 
 // Map Tailwind group color names to hex values
@@ -59,7 +81,7 @@ export function getCellStyle({ state, linked, groupHover, groupColor, bgColor, i
   const groupColorHex = getGroupColorHex(groupColor);
   if ((linked && (state === CELL_STATES.HOVER || (isSelected && state !== CELL_STATES.EMPTY) || groupHover)) || isSelectedGroup) {
     style += `background-color: color-mix(in srgb, ${groupColorHex} 15%, ${bgColor});`;
-  } else {
+  } else if (linked || groupColorHex || isSelectedGroup) {
     style += `background: ${bgColor};`;
   }
   if (linked && (state !== CELL_STATES.REGULAR || (isSelected && state !== CELL_STATES.EMPTY))) {

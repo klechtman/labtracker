@@ -167,21 +167,21 @@
           >
             <span class="w-5 h-5 rounded inline-block border border-slate-300 mr-1" style="background-color: {getGroupColor(cellGroups[$selectedGroup].color)}"></span>
             {#if renamingGroupBar}
-              <input
-                bind:this={renameInput}
-                class="px-0.5 py-0.5 w-28 text-sm font-normal outline-none bg-transparent truncate"
-                style="border: none; box-shadow: none; font-size: 1rem; min-width: 80px; max-width: 160px;"
-                value={renameValue}
+            <input
+              bind:this={renameInput}
+              class="px-0.5 py-0.5 w-28 text-sm font-normal outline-none bg-transparent truncate"
+              style="border: none; box-shadow: none; font-size: 1rem; min-width: 80px; max-width: 160px;"
+              value={renameValue}
                 on:input={handleRenameBarInput}
-                on:keydown={(e) => {
+              on:keydown={(e) => {
                   if (e.key === 'Enter') finishRenameBar();
                   if (e.key === 'Escape') cancelRenameBar();
-                }}
+              }}
                 on:blur={handleRenameBarBlur}
-              />
-            {:else}
-              <span class="truncate">{$selectedGroup}</span>
-            {/if}
+            />
+          {:else}
+            <span class="truncate">{$selectedGroup}</span>
+          {/if}
           </span>
         {:else}
           <svelte:component this={linked} className="w-5 h-5 text-slate-500" />
@@ -227,7 +227,7 @@
       </div>
     {/if}
   </div>
-  <Button 
+    <Button 
       icon={unlink} 
       color="amber"
       disabled={!$selectedGroup || renamingGroupBar}
@@ -261,7 +261,7 @@
       {/if}
     </div>
   </Modal>
-{/if}
+{/if} 
 
 <style>
   .rename-area {
