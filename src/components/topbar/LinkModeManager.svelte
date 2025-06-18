@@ -246,7 +246,7 @@ function getSelectedPlateNames() {
     >
       <div class="link-modal-content flex flex-col gap-4 w-full">
         <div class="w-full flex flex-col items-start">
-          <label for="group-name-input" class="font-bold text-lg mb-1 w-full">Group Name</label>
+          <label for="group-name-input" class="font-title mb-1 w-full">Group Name</label>
           <div class="relative w-full max-w-xs">
             <span class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded bg-slate-200 border border-slate-300" style="background-color: {groupColorsHex[nextColorIndex]}"></span>
             <input
@@ -265,7 +265,7 @@ function getSelectedPlateNames() {
           </div>
         </div>
         <div class="w-full">
-          <span class="font-bold">{linkingCells.length} Selected Plates:</span>
+          <span class="font-title">{linkingCells.length} Selected Plates:</span>
           <div class="mt-1 text-slate-700">
             {getSelectedPlateNames().join(', ')}
           </div>

@@ -2,6 +2,7 @@
   export let number;
 </script>
 
-<div class="text-xs text-sky-800 font-medium text-center">
+<div class="font-title text-center px-0.5">
   {number}
+  <div class="h-0.5 bg-sky-800 mb-0.5"></div>
 </div> 

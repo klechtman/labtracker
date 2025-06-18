@@ -22,7 +22,7 @@
 
 <button
   class={cn(
-    "px-2 py-2 rounded-lg inline-flex items-center gap-2 border text-m font-S leading-none transition-colors duration-150",
+    "px-2 py-2 rounded-lg inline-flex items-center gap-2 border leading-none transition-colors duration-150",
     colorClasses,
     className
   )}

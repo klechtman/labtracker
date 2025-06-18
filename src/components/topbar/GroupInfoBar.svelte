@@ -143,7 +143,7 @@
 </script>
 
 <div class="flex items-center gap-3">
-  <span class="font-bold text-sky-800 text-lg select-none inline-block">
+  <span class="font-title text-sky-800 select-none inline-block">
     Groups:
   </span>
   <div class="relative group-dropdown">
@@ -169,15 +169,14 @@
             {#if renamingGroupBar}
             <input
               bind:this={renameInput}
-              class="px-0.5 py-0.5 w-28 text-sm font-normal outline-none bg-transparent truncate"
-              style="border: none; box-shadow: none; font-size: 1rem; min-width: 80px; max-width: 160px;"
+              class="px-0.5 py-0.5 w-28 outline-none bg-transparent truncate border-0 shadow-none min-w-[80px] max-w-[160px]"
               value={renameValue}
-                on:input={handleRenameBarInput}
+              on:input={handleRenameBarInput}
               on:keydown={(e) => {
                   if (e.key === 'Enter') finishRenameBar();
                   if (e.key === 'Escape') cancelRenameBar();
               }}
-                on:blur={handleRenameBarBlur}
+              on:blur={handleRenameBarBlur}
             />
           {:else}
             <span class="truncate">{$selectedGroup}</span>

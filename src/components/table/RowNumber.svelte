@@ -6,11 +6,12 @@
 </script>
 
 <div
-  class={`flex items-center justify-center text-xs select-none h-full w-8 transition-colors duration-100 ${className}`}
-  style="font-family: Montserrat; min-height: var(--cell-min-height, 32px); max-height: var(--cell-max-height, 48px);"
-  class:bg-sky-600={isHovered}
-  class:text-white={isHovered}
-  class:text-slate-400={!isHovered}
+  class={`flex font-montserrat items-center select-none h-full transition-colors duration-100 ${className}
+  ${isHovered ? 'font-title' : 'text-slate-400'}`}
+  style="min-height: var(--cell-min-height, 32px); max-height: var(--cell-max-height, 48px);"
 >
-  {number}
+  <span style="display: inline-block; width: 20px; text-align: center;">{number}</span>
+  {#if isHovered}
+    <span class="ml-auto self-stretch w-0.5 bg-sky-800 my-0.5"></span>
+  {/if}
 </div> 

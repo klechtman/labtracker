@@ -16,6 +16,10 @@ export default {
       fontFamily: {
         montserrat: ['Montserrat', 'sans-serif'],
         arimo: ['Arimo', 'sans-serif'],
+        sans: ['Arimo', 'sans-serif'],
+      },
+      fontSize: {
+        base: '14px',
       },
     },
   },

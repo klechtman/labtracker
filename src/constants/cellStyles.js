@@ -16,8 +16,6 @@ export const CELL_BASE_CLASS = [
   'overflow-visible',
   'box-border',
   'border',
-  'font-[Arimo]',
-  'text-[14px]',
   'transition-colors',
   'duration-150',
 ];
@@ -35,26 +33,8 @@ export const CELL_STYLE_MAP = {
   hover: ['bg-white', 'text-slate-700', 'border-sky-600', 'hover:bg-sky-100'],
   selected: ['font-bold', 'border-slate-700'],
   outFridge: ['bg-white', 'border-dashed', 'border-slate-700', 'italic', 'text-slate-500', 'hover:bg-sky-100'],
-  linked: ['px-2'],
-  unlinked: ['px-1.5'],
   disabled: ['bg-white', 'opacity-50', 'cursor-not-allowed'],
   selectedGroup: ['bg-sky-100'],
-  selectedEmpty: ['bg-white'],
+  selectedEmpty: ['bg-white', 'border-slate-700'],
   hoverEmpty: ['hover:bg-sky-100'],
 };
-
-// Color constants (optional, for use elsewhere)
-export const CELL_COLORS = {
-  BORDER: {
-    DEFAULT: 'border-slate-300',
-    SELECTED: 'border-slate-700',
-    HOVER: 'border-sky-600'
-  },
-  TEXT: {
-    EMPTY: 'text-slate-500',
-    REGULAR: 'text-slate-700'
-  },
-  BACKGROUND: {
-    DEFAULT: 'white'
-  }
-}; 

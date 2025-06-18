@@ -66,22 +66,26 @@
     }
   }}>
     <Header title="Lab Tool" />
-    <div class="flex-1 flex flex-col justify-end pt-28 pb-9 px-12">
-      <div class="grid tables-row w-full min-w-0"
+    <div class="flex-1 flex flex-col justify-end pt-28 pb-7 px-9">
+      <div
+        class="grid tables-row w-full min-w-0 {isSmallScreen ? 'gap-y-12' : ''}"
         style={`
           display: grid;
-          gap: 48px;
           min-width: ${isSmallScreen ? '0' : '1200px'};
           align-items: end;
           height: ${isSmallScreen ? 'auto' : '100%'};
-          grid-template-columns: ${isSmallScreen ? '32px 5fr 2fr' : '32px ' + tableGridColumns};
+          grid-template-columns: ${
+            isSmallScreen
+              ? '32px 4px 5fr 36px 2fr'
+              : '32px 4px 5fr 36px 2fr 36px 10fr'
+          };
           grid-template-rows: ${isSmallScreen ? 'auto auto' : 'auto'};
         `}
       >
         {#if isSmallScreen}
           <!-- Row numbers for the top row (left and middle tables) -->
-          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" />
-          <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 2 / 3; grid-row: 1;">
+          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1;" />
+          <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 3;">
             <Table
               rows={tableConfigs.left.rows}
               columns={tableConfigs.left.columns}
@@ -89,7 +93,7 @@
               tableName={tableConfigs.left.name}
             />
           </div>
-          <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 3 / 4; grid-row: 1;">
+          <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 5;">
             <Table
               rows={tableConfigs.middle.rows}
               columns={tableConfigs.middle.columns}
@@ -98,8 +102,8 @@
             />
           </div>
           <!-- Row numbers for the bottom row (main table) -->
-          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" />
-          <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 2 / 4; grid-row: 2;">
+          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1; grid-row: 2;" />
+          <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 3 / 6; grid-row: 2;">
             <Table
               rows={tableConfigs.main.rows}
               columns={tableConfigs.main.columns}
@@ -109,17 +113,31 @@
           </div>
         {:else}
           <!-- Row numbers for the desktop layout -->
-          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" />
-          {#each tableOrder as key, i}
-            <div class="h-full flex flex-col w-full min-w-0" style={`grid-column: ${i+2}; grid-row: 1;`}>
-              <Table
-                rows={tableConfigs[key].rows}
-                columns={tableConfigs[key].columns}
-                fridge={key}
-                tableName={tableConfigs[key].name}
-              />
-            </div>
-          {/each}
+          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1;" />
+          <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 3;">
+            <Table
+              rows={tableConfigs.left.rows}
+              columns={tableConfigs.left.columns}
+              fridge="left"
+              tableName={tableConfigs.left.name}
+            />
+          </div>
+          <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 5;">
+            <Table
+              rows={tableConfigs.middle.rows}
+              columns={tableConfigs.middle.columns}
+              fridge="middle"
+              tableName={tableConfigs.middle.name}
+            />
+          </div>
+          <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 7;">
+            <Table
+              rows={tableConfigs.main.rows}
+              columns={tableConfigs.main.columns}
+              fridge="main"
+              tableName={tableConfigs.main.name}
+            />
+          </div>
         {/if}
       </div>
     </div>

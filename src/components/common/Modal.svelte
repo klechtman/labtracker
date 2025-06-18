@@ -74,7 +74,6 @@
   }
   .modal-content {
     text-align: center;
-    font-size: 1.08rem;
     min-width: 220px;
     margin-bottom: 0.5rem;
   }

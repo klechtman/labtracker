@@ -14,10 +14,6 @@
     import { unlinkCell, eraseCell } from '../../logic/groupLogic';
     import LinkModeManager from './LinkModeManager.svelte';
   
-    let showLinkGroupModal = false;
-    let newGroupName = '';
-    let linkingCells = [];
-  
     // Toggle Fridge handler
     function handleToggleFridge() {
       const selected = $selectedCells;
@@ -183,9 +179,6 @@
 
         if (!existingGroup) {
           // New group: show modal
-          linkingCells = Array.from($selectedCells);
-          newGroupName = '';
-          showLinkGroupModal = true;
           return;
         }
         // Existing group: link as before
@@ -235,37 +228,6 @@
 
     if (typeof window !== 'undefined') {
       window.addEventListener('keydown', handleKeyDown);
-    }
-  
-    function handleModalCancel() {
-      showLinkGroupModal = false;
-      selectedCells.set(new Set()); // Deselect
-      isLinkMode.set(false); // Exit link mode when canceling from modal
-    }
-  
-    function handleModalAccept() {
-      // Actually link the cells as a new group
-      const groupName = newGroupName.trim();
-      const groupColor = groupColorsHex[nextColorIndex];
-      nextColorIndex = (nextColorIndex + 1) % groupColorsHex.length;
-      nextGroupNumber++;
-      linkingCells.forEach(cellKey => {
-        const [fridge] = cellKey.split('-');
-        const store = fridge === 'left' ? leftTableStore : 
-                     fridge === 'middle' ? middleTableStore : 
-                     mainTableStore;
-        const currentCell = store.get(cellKey) || {};
-        store.updateCell(cellKey, {
-          ...currentCell,
-          linked: true,
-          groupName,
-          groupColor,
-          state: CELL_STATES.REGULAR
-        });
-      });
-      selectedCells.set(new Set());
-      isLinkMode.set(false); // Exit link mode
-      showLinkGroupModal = false;
     }
   
     // New reactive variable
@@ -362,71 +324,4 @@
       </div>
       <LinkModeManager />
     </div>
-  </header>
-  
-  {#if showLinkGroupModal}
-    <Modal
-      icon={addlink}
-      color="emerald"
-      cancelText="Cancel"
-      cancelIcon={X}
-      acceptText="Link plates"
-      acceptIcon={addlink}
-      disabled={!newGroupName.trim()}
-      on:cancel={handleModalCancel}
-      on:accept={handleModalAccept}
-      on:keydown={(e) => {
-        if (e.key === 'Escape') {
-          handleModalCancel();
-        } else if (e.key === 'Enter' && newGroupName.trim()) {
-          handleModalAccept();
-        }
-      }}
-    >
-      <div class="link-modal-content flex flex-col gap-4 w-full">
-        <div class="w-full flex flex-col items-start">
-          <label for="group-name-input" class="font-bold text-lg mb-1 w-full">Group Name</label>
-          <div class="relative w-full max-w-xs">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded bg-slate-200 border border-slate-300" style="background-color: {groupColorsHex[nextColorIndex]}"></span>
-            <input
-              id="group-name-input"
-              class="border rounded pl-10 pr-3 py-2 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white placeholder:text-slate-400"
-              type="text"
-              placeholder="Study, project, etc."
-              bind:value={newGroupName}
-              required
-              on:keydown={(e) => {
-                if (e.key === 'Enter' && newGroupName.trim()) {
-                  handleModalAccept();
-                }
-              }}
-            />
-          </div>
-        </div>
-        <div class="w-full">
-          <span class="font-bold">{linkingCells.length} Selected Plates:</span>
-          <div class="mt-1 text-slate-700">
-            {getSelectedPlateNames().join(', ')}
-          </div>
-        </div>
-      </div>
-    </Modal>
-    <div
-      class="fixed inset-0 bg-black/50 z-40 modal-overlay"
-      role="button"
-      tabindex="0"
-      aria-label="Close modal"
-      on:click|stopPropagation={handleModalCancel}
-      on:keydown={(e) => (e.key === 'Escape' || e.key === 'Enter') && handleModalCancel()}
-    ></div>
-    <style>
-      /* Only affect this modal instance */
-      .link-modal-content {
-        text-align: left !important;
-        align-items: flex-start !important;
-      }
-      .link-modal-content input {
-        text-align: left;
-      }
-    </style>
-  {/if} 
+  </header> 

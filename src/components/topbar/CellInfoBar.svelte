@@ -145,7 +145,7 @@
 </script>
 
 <div class="flex items-center gap-3">
-  <span class="font-bold text-sky-800 text-lg select-none w-[180px] inline-block">
+  <span class="font-title select-none w-[180px] inline-block">
     {#if cellKey}
       {getCellPosition(cellKey)}
     {:else}

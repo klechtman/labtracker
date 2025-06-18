@@ -64,13 +64,8 @@
       {#if !tableName}
         <div class="h-1"></div>
       {/if}
-      <div class="mt-2 flex flex-col min-h-[28px]">
-        {#if tableName}
-          <div class="h-0.5 bg-sky-800 mb-1"></div>
-          <div class="font-bold text-base text-sky-800">{tableName}</div>
-        {/if}
-      </div>
     </div>
+    <div class="mt-2 flex flex-col min-h-[28px]"></div>
   {:else}
     <div class="grid flex-grow w-full gap-px relative" data-columns={columns} style="grid-template-rows: repeat({maxRows}, 1fr); grid-template-columns: repeat({columns}, minmax(0, 1fr)); margin-left: 0;">
       {#each Array.from({ length: maxRows }, (_, row) => maxRows - row - 1) as row}
@@ -123,8 +118,10 @@
     <div class="mt-2 flex flex-col">
       {#if tableName}
         <div class="h-0.5 bg-sky-800 mb-1"></div>
+        <div class="font-title min-h-[28px]">{tableName}</div>
+      {:else}
+        <div class="min-h-[28px]"></div>
       {/if}
-      <div class="font-bold text-base text-sky-800 min-h-[28px]">{tableName}</div>
     </div>
   {/if}
 </div> 
