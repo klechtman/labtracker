@@ -67,7 +67,7 @@
     </div>
     <div class="mt-2 flex flex-col min-h-[28px]"></div>
   {:else}
-    <div class="grid flex-grow w-full gap-px relative" data-columns={columns} style="grid-template-rows: repeat({maxRows}, 1fr); grid-template-columns: repeat({columns}, minmax(0, 1fr)); margin-left: 0;">
+    <div class="grid flex-grow w-full gap-px relative min-w-0" data-columns={columns} style="grid-template-rows: repeat({maxRows}, 1fr); grid-template-columns: repeat({columns}, minmax(60px, 1fr)); margin-left: 0; min-width: {columns * 60}px;">
       {#each Array.from({ length: maxRows }, (_, row) => maxRows - row - 1) as row}
         {#each colArr as col}
           {#if (!Array.isArray(rows) && row < rows) || (Array.isArray(rows) && row < rows[col])}

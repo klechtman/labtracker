@@ -10,6 +10,7 @@ export const CELL_BASE_CLASS = [
   'h-full',
   'min-h-[32px]',
   'max-h-[48px]',
+  'min-w-[60px]',
   'min-w-0',
   'relative',
   'text-left',

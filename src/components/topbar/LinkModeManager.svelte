@@ -8,6 +8,7 @@ import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLink
 import { getStoreByCellKey } from '../../utils/cellUtils';
 import { CELL_STATES } from '../../constants';
 import { createEventDispatcher } from 'svelte';
+import InputField from '../common/InputField.svelte';
 
 const dispatch = createEventDispatcher();
 
@@ -247,22 +248,18 @@ function getSelectedPlateNames() {
       <div class="link-modal-content flex flex-col gap-4 w-full">
         <div class="w-full flex flex-col items-start">
           <label for="group-name-input" class="font-title mb-1 w-full">Group Name</label>
-          <div class="relative w-full max-w-xs">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 rounded bg-slate-200 border border-slate-300" style="background-color: {groupColorsHex[nextColorIndex]}"></span>
-            <input
-              id="group-name-input"
-              class="border rounded pl-10 pr-3 py-2 w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white placeholder:text-slate-400"
-              type="text"
-              placeholder="Study, project, etc."
-              bind:value={newGroupName}
-              required
-              on:keydown={(e) => {
-                if (e.key === 'Enter' && newGroupName.trim()) {
-                  handleModalAccept();
-                }
-              }}
-            />
-          </div>
+          <InputField
+            type="input"
+            placeholder="Study, project, etc."
+            bind:value={newGroupName}
+            iconColor={groupColorsHex[nextColorIndex]}
+            on:keydown={(e) => {
+              if (e.key === 'Enter' && newGroupName.trim()) {
+                handleModalAccept();
+              }
+            }}
+            extraClasses="w-full max-w-xs"
+          />
         </div>
         <div class="w-full">
           <span class="font-title">{linkingCells.length} Selected Plates:</span>

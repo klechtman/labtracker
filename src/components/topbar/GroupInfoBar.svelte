@@ -1,8 +1,10 @@
 <script>
+  import X from '../icons/X.svelte';
   import { leftTableStore, middleTableStore, mainTableStore, getCellGroups, selectedGroup, isLinkMode } from '../../stores/tableStore';
   import linked from '../icons/linked.svelte';
   import { GROUP_COLOR_HEX } from '../../constants';
   import Button from '../common/Button.svelte';
+  import InputField from '../common/InputField.svelte';
   import unlink from '../icons/unlink.svelte';
   import erase from '../icons/erase.svelte';
   import { onMount } from 'svelte';
@@ -10,7 +12,6 @@
   import { clickOutside } from '../../lib/clickOutside.js';
   import Modal from '../common/Modal.svelte';
   import check from '../icons/check.svelte';
-  import X from '../icons/X.svelte';
   import { unlinkAllInGroup, deleteAllInGroup } from '../../logic/groupLogic';
 
   let showDropdown = false;
@@ -88,6 +89,7 @@
     const newName = renameValue.trim();
     if (!newName || newName === oldName) {
       renamingGroupBar = false;
+      renameHover = false;
       return;
     }
     // Update all cells in all stores
@@ -108,11 +110,19 @@
     });
     selectedGroup.set(newName);
     renamingGroupBar = false;
+    renameHover = false;
   }
 
   function cancelRenameBar() {
     renamingGroupBar = false;
     renameValue = '';
+    renameHover = false;
+  }
+
+  function deselectGroup(e) {
+    e.stopPropagation();
+    selectedGroup.set(null);
+    showDropdown = false; // Also close dropdown if it's open
   }
 
   function handleGroupAction() {
@@ -147,48 +157,83 @@
     Groups:
   </span>
   <div class="relative group-dropdown">
-    <button
-      class="flex items-center gap-2 border rounded px-2 py-1 bg-white w-[200px] hover:bg-slate-50 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed justify-between {renameHover ? 'rename-hover' : ''}"
-      on:mousedown={() => { ignoreNextBlur = true; }}
-      on:click={handleDropdownToggle}
-      type="button"
-      disabled={Object.keys(cellGroups).length === 0 || $isLinkMode || renamingGroupBar}
-    >
-      <span class="flex items-center gap-2 flex-1 min-w-0">
-        {#if $selectedGroup && cellGroups[$selectedGroup]}
-          <span class="rename-area flex items-center gap-2 px-1 rounded cursor-text transition"
-            role="button"
-            tabindex="0"
-            on:mouseenter={() => renameHover = true}
-            on:mouseleave={() => renameHover = false}
-            on:click|stopPropagation={startRenameBar}
-            on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && startRenameBar()}
-            title="Click to rename group"
-          >
-            <span class="w-5 h-5 rounded inline-block border border-slate-300 mr-1" style="background-color: {getGroupColor(cellGroups[$selectedGroup].color)}"></span>
-            {#if renamingGroupBar}
-            <input
-              bind:this={renameInput}
-              class="px-0.5 py-0.5 w-28 outline-none bg-transparent truncate border-0 shadow-none min-w-[80px] max-w-[160px]"
-              value={renameValue}
-              on:input={handleRenameBarInput}
-              on:keydown={(e) => {
-                  if (e.key === 'Enter') finishRenameBar();
-                  if (e.key === 'Escape') cancelRenameBar();
-              }}
-              on:blur={handleRenameBarBlur}
-            />
+    {#if renamingGroupBar}
+       <div
+        class="relative flex items-center gap-2 border rounded px-2 py-1 bg-sky-100 w-[200px] h-[34px] ring-2 ring-sky-400"
+      >
+        <span
+          class="w-5 h-5 rounded border border-slate-300 flex-shrink-0"
+          style="background-color: {getGroupColor(cellGroups[$selectedGroup].color)};"
+        ></span>
+        <input
+          bind:this={renameInput}
+          class="w-full h-full bg-transparent border-none outline-none p-0"
+          value={renameValue}
+          on:input={handleRenameBarInput}
+          on:keydown={(e) => {
+              if (e.key === 'Enter') finishRenameBar();
+              if (e.key === 'Escape') cancelRenameBar();
+          }}
+          on:blur={handleRenameBarBlur}
+        />
+      </div>
+    {:else}
+      <div
+        role="button"
+        tabindex="0"
+        class="relative flex items-center gap-2 border rounded px-2 py-1 bg-white hover:bg-slate-50 w-[200px] h-[34px] {renameHover ? 'rename-hover' : ''}"
+        class:opacity-50={Object.keys(cellGroups).length === 0 || $isLinkMode}
+        class:cursor-not-allowed={Object.keys(cellGroups).length === 0 || $isLinkMode}
+        aria-disabled={Object.keys(cellGroups).length === 0 || $isLinkMode}
+        on:click={handleDropdownToggle}
+        on:mousedown={() => { ignoreNextBlur = true; }}
+        on:keydown={(e) => { if (!e.target.classList.contains('rename-area') && (e.key === ' ' || e.key === 'Enter')) handleDropdownToggle() }}
+      >
+        <span
+          class="w-5 h-5 rounded border border-slate-300 flex-shrink-0"
+          style="background-color: {$selectedGroup ? getGroupColor(cellGroups[$selectedGroup]?.color) : '#cbd5e1'};"
+        ></span>
+        
+        <span class="flex-1 min-w-0 text-left">
+          {#if $selectedGroup && cellGroups[$selectedGroup]}
+            <span
+              class="rename-area cursor-text"
+              role="button"
+              tabindex="-1"
+              on:mouseenter={() => renameHover = true}
+              on:mouseleave={() => renameHover = false}
+              on:click|stopPropagation={startRenameBar}
+              on:keydown|stopPropagation={(e) => { if (e.key === 'Enter' || e.key === ' ') startRenameBar() }}
+              title="Click to rename group"
+            >
+              <span class="truncate">{$selectedGroup}</span>
+            </span>
           {:else}
-            <span class="truncate">{$selectedGroup}</span>
+            <span class="text-slate-500 truncate">No group selected</span>
           {/if}
-          </span>
-        {:else}
-          <svelte:component this={linked} className="w-5 h-5 text-slate-500" />
-          <span class="text-slate-500 truncate">No group selected</span>
-        {/if}
-      </span>
-      <svg class="w-4 h-4 ml-1 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
-    </button>
+        </span>
+
+        <div class="flex items-center">
+          {#if $selectedGroup}
+            <span
+              role="button"
+              tabindex="0"
+              class="p-0.5 rounded hover:bg-slate-200"
+              on:click|stopPropagation={deselectGroup}
+              on:keydown|stopPropagation={(e) => { if(e.key === ' ' || e.key === 'Enter') deselectGroup(e) }}
+              title="Deselect group"
+            >
+              <X className="w-4 h-4 text-slate-600"/>
+            </span>
+          {/if}
+
+          <svg class="w-4 h-4 ml-1 flex-shrink-0 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </div>
+    {/if}
+
     {#if showDropdown}
       <div
         use:clickOutside={() => showDropdown = false}
@@ -205,7 +250,7 @@
           on:click={() => selectGroup('linked-plates')}
           on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && selectGroup('linked-plates')}
         >
-          <svelte:component this={linked} className="w-5 h-5 text-slate-500 flex-shrink-0" />
+          <span class="w-5 h-5 rounded border border-slate-300 flex-shrink-0" style="background-color: #cbd5e1;"></span>
           <span class="text-slate-500 truncate">No group selected</span>
         </div>
         {#each Object.entries(cellGroups) as [groupName, group]}

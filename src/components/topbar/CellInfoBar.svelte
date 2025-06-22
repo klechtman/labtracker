@@ -4,6 +4,7 @@
   import { GROUP_COLOR_HEX } from '../../constants';
   import { CELL_STATES } from '../../constants';
   import Button from '../common/Button.svelte';
+  import InputField from '../common/InputField.svelte';
   import incubator from '../icons/incubator.svelte';
   import unlink from '../icons/unlink.svelte';
   import erase from '../icons/erase.svelte';
@@ -153,18 +154,16 @@
     {/if}
   </span>
   <div class="flex items-center gap-2 cell-info-bar">
-    <div class="relative flex items-center min-w-[160px]">
-      <span class="absolute left-2 top-1/2 -translate-y-1/2 w-5 h-5 rounded bg-slate-200 border border-slate-300" style="background-color: {getGroupColor(cellData.groupColor)}"></span>
-      <input
-        type="text"
-        class="border rounded pl-9 pr-2 py-1 focus:outline-none focus:ring-2 focus:ring-sky-400 bg-white min-w-[160px] disabled:bg-slate-100 disabled:cursor-not-allowed"
-        placeholder="Plate name"
-        value={cellData.text || ''}
-        on:input={handleInput}
-        on:keydown={handleKeyDown}
-        disabled={$isLinkMode || !cellKey}
-      />
-    </div>
+    <InputField
+      type="input"
+      value={cellData.text || ''}
+      placeholder="Plate name"
+      disabled={$isLinkMode || !cellKey}
+      iconColor={getGroupColor(cellData.groupColor)}
+      on:input={handleInput}
+      on:keydown={handleKeyDown}
+      extraClasses="w-auto min-w-[160px]"
+    />
     <Button 
       icon={incubator} 
       color="purple" 

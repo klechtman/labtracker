@@ -22,7 +22,7 @@
 
 <button
   class={cn(
-    "px-2 py-2 rounded-lg inline-flex items-center gap-2 border leading-none transition-colors duration-150",
+    "px-2 py-2 rounded-lg inline-flex items-center gap-2 border leading-none transition-colors duration-150 whitespace-nowrap min-w-0",
     colorClasses,
     className
   )}
@@ -32,7 +32,7 @@
   on:click={(e) => { if (!disabled) dispatch('click', e); }}
 >
   {#if icon}
-    <svelte:component this={icon} className={iconClass ? iconClass : 'w-4 h-4'} />
+    <svelte:component this={icon} className={iconClass ? iconClass : 'w-4 h-4 flex-shrink-0'} />
   {/if}
   <slot />
 </button> 
