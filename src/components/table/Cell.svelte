@@ -81,7 +81,8 @@
     groupHover, 
     isSelected: $selectedCells.has(cellKey),
     isDisabled: ($isLinkMode && !text.trim() && !linked) || isFromDifferentGroup,
-    isSelectedGroup
+    isSelectedGroup,
+    isEditing
   });
   $: cellStyle = getCellStyle({ 
     state, 

@@ -18,14 +18,18 @@ export function parseCellKey(cellKey) {
   return { fridge, row: parseInt(row), col: parseInt(col) };
 }
 
-export function getCellClass({ state, linked, outFridge, groupHover, isSelected, isDisabled, isSelectedGroup }) {
+export function getCellClass({ state, linked, outFridge, groupHover, isSelected, isDisabled, isSelectedGroup, isEditing }) {
   let classes = [...CELL_BASE_CLASS];
 
   // Padding
   classes.push(linked ? CELL_PADDING.linked : CELL_PADDING.unlinked);
 
+  // Editing state (highest priority)
+  if (isEditing) {
+    classes.push(...CELL_STYLE_MAP.editing);
+  }
   // Disabled
-  if (isDisabled) {
+  else if (isDisabled) {
     classes.push(...CELL_STYLE_MAP.disabled);
   }
   // OutFridge
@@ -53,8 +57,8 @@ export function getCellClass({ state, linked, outFridge, groupHover, isSelected,
     classes.push(...CELL_STYLE_MAP.regular);
   }
 
-  // Selected (not empty)
-  if (isSelected && state !== CELL_STATES.EMPTY) {
+  // Selected (not empty) - only apply if not editing
+  if (isSelected && state !== CELL_STATES.EMPTY && !isEditing) {
     classes.push(...CELL_STYLE_MAP.selected);
   }
 

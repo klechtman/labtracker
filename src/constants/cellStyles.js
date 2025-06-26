@@ -38,4 +38,5 @@ export const CELL_STYLE_MAP = {
   selectedGroup: ['bg-sky-100'],
   selectedEmpty: ['bg-white', 'border-slate-700'],
   hoverEmpty: ['hover:bg-sky-100'],
+  editing: ['bg-sky-50', 'border-sky-500', 'ring-2', 'ring-sky-200'],
 };

@@ -156,7 +156,7 @@
   <div class="flex items-center gap-2 cell-info-bar">
     <InputField
       type="input"
-      value={cellData.text || ''}
+      bind:value={cellData.text}
       placeholder="Plate name"
       disabled={$isLinkMode || !cellKey}
       iconColor={getGroupColor(cellData.groupColor)}

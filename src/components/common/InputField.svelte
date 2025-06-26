@@ -1,5 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
+  import { INPUT_BASE_CLASS, INPUT_STYLE_MAP } from '../../constants/inputStyles';
 
   const dispatch = createEventDispatcher();
 
@@ -9,16 +10,29 @@
   export let disabled = false;
   export let iconColor = '#cbd5e1'; // Default slate-300 color
   export let extraClasses = '';
+
+  function getInputClasses() {
+    let classes = [...INPUT_BASE_CLASS];
+    
+    if (type === 'input') {
+      classes = classes.concat(INPUT_STYLE_MAP.input);
+    } else {
+      classes = classes.concat(INPUT_STYLE_MAP.button);
+    }
+    
+    if (disabled) {
+      classes = classes.concat(INPUT_STYLE_MAP.disabled);
+    }
+    
+    if (extraClasses) {
+      classes.push(extraClasses);
+    }
+    
+    return classes.join(' ');
+  }
 </script>
 
-<div
-  class="relative flex items-center gap-2 border rounded px-2 py-1 bg-white w-[200px] h-[34px] {extraClasses}
-    focus-within:ring-2 focus-within:ring-sky-400
-    {type === 'button' ? 'hover:bg-slate-50' : ''}
-    {type === 'input' ? 'hover:bg-sky-100 focus-within:bg-sky-100' : ''}"
-  class:opacity-50={disabled}
-  class:cursor-not-allowed={disabled}
->
+<div class={getInputClasses()}>
   <!-- Icon/Color Square -->
   <span
     class="w-5 h-5 rounded border border-slate-300 flex-shrink-0"
@@ -29,9 +43,9 @@
     <input
       class="w-full h-full bg-transparent border-none outline-none p-0 disabled:cursor-not-allowed placeholder:text-slate-400"
       {placeholder}
-      {value}
+      bind:value
       {disabled}
-      on:input={e => value = e.target.value}
+      on:input
       on:keydown
       on:blur
     />
