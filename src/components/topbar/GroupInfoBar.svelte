@@ -5,7 +5,7 @@
   import unlink from '../icons/unlink.svelte';
   import erase from '../icons/erase.svelte';
   import Modal from '../common/Modal.svelte';
-  import GroupDropdownInput from '../common/GroupDropdownInput.svelte';
+  import GroupInput from '../common/GroupInput.svelte';
 
   let showGroupActionModal = false;
   let groupActionType = null; // 'unlink' or 'delete'
@@ -91,10 +91,10 @@
   <span class="font-title text-sky-800 select-none inline-block">
     Groups:
   </span>
-  <GroupDropdownInput
+  <GroupInput
     value={$selectedGroup || ''}
     placeholder="No group selected"
-    color={$selectedGroup ? cellGroups[$selectedGroup]?.color : '#cbd5e1'}
+    iconColor={$selectedGroup ? cellGroups[$selectedGroup]?.color : '#cbd5e1'}
     disabled={Object.keys(cellGroups).length === 0 || $isLinkMode}
     groups={cellGroups}
     isLinkMode={$isLinkMode}

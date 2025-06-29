@@ -11,28 +11,54 @@
   export let iconColor = '#cbd5e1'; // Default slate-300 color
   export let extraClasses = '';
 
+  let isFocused = false;
+  let isHovered = false;
+
   function getInputClasses() {
     let classes = [...INPUT_BASE_CLASS];
-    
     if (type === 'input') {
-      classes = classes.concat(INPUT_STYLE_MAP.input);
+      if (disabled) {
+        classes = classes.concat(INPUT_STYLE_MAP.inputDefault);
+        classes = classes.concat(INPUT_STYLE_MAP.disabled);
+      } else if (isFocused) {
+        classes = classes.concat(INPUT_STYLE_MAP.focus);
+      } else if (isHovered) {
+        classes = classes.concat(INPUT_STYLE_MAP.inputDefault);
+        classes = classes.concat(INPUT_STYLE_MAP.renameHover);
+      } else {
+        classes = classes.concat(INPUT_STYLE_MAP.inputDefault);
+      }
     } else {
       classes = classes.concat(INPUT_STYLE_MAP.button);
     }
-    
-    if (disabled) {
-      classes = classes.concat(INPUT_STYLE_MAP.disabled);
-    }
-    
     if (extraClasses) {
       classes.push(extraClasses);
     }
-    
     return classes.join(' ');
+  }
+
+  function handleMouseEnter() {
+    if (!disabled && state !== 'focus') state = 'hover';
+  }
+  function handleMouseLeave() {
+    if (!disabled && state === 'hover') state = 'regular';
+  }
+  function handleFocus() {
+    if (!disabled) state = 'focus';
+  }
+  function handleBlur() {
+    if (!disabled) state = 'regular';
   }
 </script>
 
-<div class={getInputClasses()}>
+<div class={[
+  ...INPUT_BASE_CLASS,
+  ...INPUT_STYLE_MAP.inputDefault,
+  ...INPUT_STYLE_MAP.focus,
+  ...INPUT_STYLE_MAP.hover,
+  disabled ? INPUT_STYLE_MAP.disabled.join(' ') : '',
+  extraClasses
+].join(' ')}>
   <!-- Icon/Color Square -->
   <span
     class="w-5 h-5 rounded border border-slate-300 flex-shrink-0"
@@ -47,7 +73,6 @@
       {disabled}
       on:input
       on:keydown
-      on:blur
     />
   {:else if type === 'button'}
     <button
