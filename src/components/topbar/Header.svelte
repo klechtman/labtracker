@@ -6,7 +6,7 @@
     import Modal from '../common/Modal.svelte';
     import addlink from '../icons/addlink.svelte';
     import X from '../icons/X.svelte';
-    import { selectedCells, leftTableStore, middleTableStore, mainTableStore, getCellGroups, isLinkMode, selectedCellData, selectedGroup } from '../../stores/tableStore';
+    import { selectedCells, leftTableStore, middleTableStore, mainTableStore, getCellGroups, isLinkMode, selectedCellData, selectedGroup, isGroupMode } from '../../stores/tableStore';
     import { getStoreByCellKey } from '../../utils/cellUtils';
     import { CELL_STATES } from '../../constants';
     import { canLinkCells } from '../../logic/buttonLogic';
@@ -153,6 +153,7 @@
         selectedCells.set(groupCells);
         selectedGroup.set(null);
         isLinkMode.set(true);
+        isGroupMode.set(false);
         return;
       }
 
@@ -206,6 +207,7 @@
         // Clear selection when entering link mode
         if (!$isLinkMode) {
           selectedCells.set(new Set());
+          isGroupMode.set(false);
         }
       }
     }

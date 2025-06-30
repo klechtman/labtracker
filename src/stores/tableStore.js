@@ -28,6 +28,7 @@ export const mainTableStore = createTableStore();
 // Store for selected cells across all tables
 export const selectedCells = writable(new Set());
 export const isLinkMode = writable(false);
+export const isGroupMode = writable(false);
 
 // Svelte 5: cellGroups as a function to be used in Svelte components
 export function getCellGroups(left, middle, main) {

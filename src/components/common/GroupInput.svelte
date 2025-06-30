@@ -50,14 +50,17 @@
     const newName = renameValue.trim();
     if (!newName || newName === value) {
       isRenaming = false;
+      renameHover = false;
       return;
     }
     dispatch('rename', { oldName: value, newName });
     isRenaming = false;
+    renameHover = false;
   }
   function cancelRename() {
     isRenaming = false;
     renameValue = '';
+    renameHover = false;
   }
   function handleRenameInput(e) { renameValue = e.target.value; }
   function handleRenameKeydown(e) {

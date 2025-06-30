@@ -4,7 +4,7 @@ import Modal from '../common/Modal.svelte';
 import addlink from '../icons/addlink.svelte';
 import X from '../icons/X.svelte';
 import { groupColorsHex } from '../../constants';
-import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup, selectedCellData } from '../../stores/tableStore';
+import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup, selectedCellData, isGroupMode } from '../../stores/tableStore';
 import { getStoreByCellKey } from '../../utils/cellUtils';
 import { CELL_STATES } from '../../constants';
 import { createEventDispatcher } from 'svelte';
@@ -95,6 +95,7 @@ function handleLinkCells(event) {
     selectedCells.set(groupCells);
     selectedGroup.set(null);
     isLinkMode.set(true);
+    isGroupMode.set(false);
     return;
   }
   if ($isLinkMode && $selectedCells.size >= 2) {
@@ -144,6 +145,7 @@ function handleLinkCells(event) {
     isLinkMode.update(mode => !mode);
     if (!$isLinkMode) {
       selectedCells.set(new Set());
+      isGroupMode.set(false);
     }
   }
 }
@@ -152,10 +154,20 @@ function handleModalCancel() {
   showLinkGroupModal = false;
   selectedCells.set(new Set());
   isLinkMode.set(false);
+  isGroupMode.set(false);
 }
 
 function handleModalAccept() {
   const groupName = newGroupName.trim();
+  // Check for duplicate group name
+  const allStores = [$leftTableStore, $middleTableStore, $mainTableStore];
+  const groupExists = allStores.some(store =>
+    Object.values(store).some(cell => cell.groupName === groupName)
+  );
+  if (groupExists) {
+    alert('A group with this name already exists. Please choose a different name.');
+    return;
+  }
   const groupColor = groupColorsHex[nextColorIndex];
   nextColorIndex = (nextColorIndex + 1) % groupColorsHex.length;
   nextGroupNumber++;
@@ -212,6 +224,7 @@ function getSelectedPlateNames() {
       on:click={() => {
         selectedCells.set(new Set());
         isLinkMode.set(false);
+        isGroupMode.set(false);
       }}
     >
       Cancel

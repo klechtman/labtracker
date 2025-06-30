@@ -9,10 +9,12 @@
   import { groupColors, groupColorsHex } from './constants';
   import { tableConfigs } from './constants';
   import { canLinkCells, handleLinkCells } from './logic/groupLogic';
+  import ColorPaletteTest from './components/common/ColorPaletteTest.svelte';
   
   // Track the next color index to use
   let nextColorIndex = 0;
   let nextGroupNumber = 1;
+  let showPalette = false;
 
   // Handle ESC and Enter keys for deselection
   function handleKeyDown(event) {
@@ -62,88 +64,101 @@
   $: cellGroups = getCellGroups($leftTableStore, $middleTableStore, $mainTableStore);
 </script>
 
-<main class="h-screen bg-sky-50 p-0 flex flex-col overflow-auto">
-  <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-  <div class="flex-1 flex flex-col" on:click={event => {
-    if (!$isLinkMode && !event.target.closest('button, input, select, .cell, [role=\"button\"]')) {
-      selectedCells.set(new Set());
-    }
-  }}>
-    <Header title="Lab Tool" />
-    <div class="flex-1 flex flex-col justify-end pt-28 pb-7 px-9 overflow-x-auto">
-      <div
-        class="grid tables-row w-full min-w-0 {isSmallScreen ? 'gap-y-12' : ''}"
-        style={`
-          display: grid;
-          min-width: ${isSmallScreen ? Math.max(400, tableConfigs.left.columns * 60 + tableConfigs.middle.columns * 60 + 100) + 'px' : minGridWidth + 'px'};
-          align-items: end;
-          height: ${isSmallScreen ? 'auto' : '100%'};
-          grid-template-columns: ${
-            isSmallScreen
-              ? '32px 4px minmax(300px, 5fr) 36px minmax(120px, 2fr)'
-              : '32px 4px minmax(300px, 5fr) 36px minmax(120px, 2fr) 36px minmax(600px, 10fr)'
-          };
-          grid-template-rows: ${isSmallScreen ? 'auto auto' : 'auto'};
-        `}
-      >
-        {#if isSmallScreen}
-          <!-- Row numbers for the top row (left and middle tables) -->
-          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1;" />
-          <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 3; min-width: {tableConfigs.left.columns * 60}px;">
-            <Table
-              rows={tableConfigs.left.rows}
-              columns={tableConfigs.left.columns}
-              fridge="left"
-              tableName={tableConfigs.left.name}
-            />
-          </div>
-          <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 5; min-width: {tableConfigs.middle.columns * 60}px;">
-            <Table
-              rows={tableConfigs.middle.rows}
-              columns={tableConfigs.middle.columns}
-              fridge="middle"
-              tableName={tableConfigs.middle.name}
-            />
-          </div>
-          <!-- Row numbers for the bottom row (main table) -->
-          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1; grid-row: 2;" />
-          <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 3 / 6; grid-row: 2; min-width: {tableConfigs.main.columns * 60}px;">
-            <Table
-              rows={tableConfigs.main.rows}
-              columns={tableConfigs.main.columns}
-              fridge="main"
-              tableName={tableConfigs.main.name}
-            />
-          </div>
-        {:else}
-          <!-- Row numbers for the desktop layout -->
-          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1;" />
-          <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 3; min-width: {tableConfigs.left.columns * 60}px;">
-            <Table
-              rows={tableConfigs.left.rows}
-              columns={tableConfigs.left.columns}
-              fridge="left"
-              tableName={tableConfigs.left.name}
-            />
-          </div>
-          <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 5; min-width: {tableConfigs.middle.columns * 60}px;">
-            <Table
-              rows={tableConfigs.middle.rows}
-              columns={tableConfigs.middle.columns}
-              fridge="middle"
-              tableName={tableConfigs.middle.name}
-            />
-          </div>
-          <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 7; min-width: {tableConfigs.main.columns * 60}px;">
-            <Table
-              rows={tableConfigs.main.rows}
-              columns={tableConfigs.main.columns}
-              fridge="main"
-              tableName={tableConfigs.main.name}
-            />
-          </div>
-        {/if}
+<div style="position: absolute; top: 1rem; right: 1rem; z-index: 100;">
+  {#if !showPalette}
+    <button on:click={() => showPalette = true} style="padding: 0.5em 1em; border-radius: 6px; border: 1px solid #ccc; background: #fff; cursor: pointer;">Show Color Palette</button>
+  {/if}
+  {#if showPalette}
+    <button on:click={() => showPalette = false} style="padding: 0.5em 1em; border-radius: 6px; border: 1px solid #ccc; background: #fff; cursor: pointer;">Back to app</button>
+  {/if}
+</div>
+
+{#if showPalette}
+  <ColorPaletteTest />
+{:else}
+  <main class="h-screen bg-sky-50 p-0 flex flex-col overflow-auto">
+    <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
+    <div class="flex-1 flex flex-col" on:click={event => {
+      if (!$isLinkMode && !event.target.closest('button, input, select, .cell, [role=\"button\"]')) {
+        selectedCells.set(new Set());
+      }
+    }}>
+      <Header title="Lab Tool" />
+      <div class="flex-1 flex flex-col justify-end pt-28 pb-7 px-9 overflow-x-auto">
+        <div
+          class="grid tables-row w-full min-w-0 {isSmallScreen ? 'gap-y-12' : ''}"
+          style={`
+            display: grid;
+            min-width: ${isSmallScreen ? Math.max(400, tableConfigs.left.columns * 60 + tableConfigs.middle.columns * 60 + 100) + 'px' : minGridWidth + 'px'};
+            align-items: end;
+            height: ${isSmallScreen ? 'auto' : '100%'};
+            grid-template-columns: ${
+              isSmallScreen
+                ? '32px 4px minmax(300px, 5fr) 36px minmax(120px, 2fr)'
+                : '32px 4px minmax(300px, 5fr) 36px minmax(120px, 2fr) 36px minmax(600px, 10fr)'
+            };
+            grid-template-rows: ${isSmallScreen ? 'auto auto' : 'auto'};
+          `}
+        >
+          {#if isSmallScreen}
+            <!-- Row numbers for the top row (left and middle tables) -->
+            <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1;" />
+            <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 3; min-width: {tableConfigs.left.columns * 60}px;">
+              <Table
+                rows={tableConfigs.left.rows}
+                columns={tableConfigs.left.columns}
+                fridge="left"
+                tableName={tableConfigs.left.name}
+              />
+            </div>
+            <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 5; min-width: {tableConfigs.middle.columns * 60}px;">
+              <Table
+                rows={tableConfigs.middle.rows}
+                columns={tableConfigs.middle.columns}
+                fridge="middle"
+                tableName={tableConfigs.middle.name}
+              />
+            </div>
+            <!-- Row numbers for the bottom row (main table) -->
+            <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1; grid-row: 2;" />
+            <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 3 / 6; grid-row: 2; min-width: {tableConfigs.main.columns * 60}px;">
+              <Table
+                rows={tableConfigs.main.rows}
+                columns={tableConfigs.main.columns}
+                fridge="main"
+                tableName={tableConfigs.main.name}
+              />
+            </div>
+          {:else}
+            <!-- Row numbers for the desktop layout -->
+            <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1;" />
+            <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 3; min-width: {tableConfigs.left.columns * 60}px;">
+              <Table
+                rows={tableConfigs.left.rows}
+                columns={tableConfigs.left.columns}
+                fridge="left"
+                tableName={tableConfigs.left.name}
+              />
+            </div>
+            <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 5; min-width: {tableConfigs.middle.columns * 60}px;">
+              <Table
+                rows={tableConfigs.middle.rows}
+                columns={tableConfigs.middle.columns}
+                fridge="middle"
+                tableName={tableConfigs.middle.name}
+              />
+            </div>
+            <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 7; min-width: {tableConfigs.main.columns * 60}px;">
+              <Table
+                rows={tableConfigs.main.rows}
+                columns={tableConfigs.main.columns}
+                fridge="main"
+                tableName={tableConfigs.main.name}
+              />
+            </div>
+          {/if}
+        </div>
       </div>
     </div>
-  </div>
-</main>
+  </main>
+{/if}

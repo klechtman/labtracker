@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher, getContext } from 'svelte';
   import { CELL_STATES, GROUP_COLOR_HEX } from '../../constants';
-  import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup } from '../../stores/tableStore';
+  import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup, isGroupMode } from '../../stores/tableStore';
   import { hoveredGroup } from '../../stores/hoverStore';
   import { cn } from '../../lib/utils';
   import { updateCellName, getStoreByCellKey, getCellClass, getCellStyle } from '../../utils/cellUtils';
@@ -73,6 +73,7 @@
 
   // Get cell class and style using utility functions
   $: isFromDifferentGroup = $isLinkMode && $selectedGroup && linked && groupName !== $selectedGroup;
+  $: isFromDifferentGroupInGroupMode = $isGroupMode && $selectedGroup && linked && groupName !== $selectedGroup;
 
   $: cellClass = getCellClass({ 
     state, 
@@ -80,7 +81,7 @@
     outFridge, 
     groupHover, 
     isSelected: $selectedCells.has(cellKey),
-    isDisabled: ($isLinkMode && !text.trim() && !linked) || isFromDifferentGroup,
+    isDisabled: ($isLinkMode && !text.trim() && !linked) || isFromDifferentGroup || ($isGroupMode && !linked),
     isSelectedGroup,
     isEditing
   });
@@ -91,7 +92,7 @@
     groupColor, 
     bgColor, 
     isSelected: $selectedCells.has(cellKey),
-    isDisabled: ($isLinkMode && !text.trim() && !linked) || isFromDifferentGroup,
+    isDisabled: ($isLinkMode && !text.trim() && !linked) || isFromDifferentGroup || ($isGroupMode && !linked),
     isSelectedGroup
   });
 
@@ -133,7 +134,7 @@
   }
 
   function handleInput(event) {
-    if ($isLinkMode) return;
+    if ($isLinkMode || $isGroupMode) return;
     const newValue = event.target.value;
     const store = getStoreByCellKey(cellKey);
     if (!store) return;
@@ -184,6 +185,9 @@
     
     // Don't allow selection of empty cells in link mode
     if ($isLinkMode && !text.trim() && !linked) return;
+    
+    // Don't allow selection of cells not in the selected group when in group mode
+    if ($isGroupMode && !linked) return;
 
     selectedCells.update(set => {
       const newSet = new Set(set);

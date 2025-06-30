@@ -1,6 +1,6 @@
 <script>
   import X from '../icons/X.svelte';
-  import { leftTableStore, middleTableStore, mainTableStore, getCellGroups, selectedGroup, isLinkMode } from '../../stores/tableStore';
+  import { leftTableStore, middleTableStore, mainTableStore, getCellGroups, selectedGroup, isLinkMode, isGroupMode } from '../../stores/tableStore';
   import Button from '../common/Button.svelte';
   import unlink from '../icons/unlink.svelte';
   import erase from '../icons/erase.svelte';
@@ -16,6 +16,13 @@
   // Watch for link mode changes
   $: if ($isLinkMode && $selectedGroup) {
     selectedGroup.set($selectedGroup);
+  }
+
+  // Activate/deactivate group mode based on group selection
+  $: if ($selectedGroup) {
+    isGroupMode.set(true);
+  } else {
+    isGroupMode.set(false);
   }
 
   // Clear selected group when no groups exist
