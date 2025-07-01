@@ -9,12 +9,9 @@
   import { groupColors, groupColorsHex } from './constants';
   import { tableConfigs } from './constants';
   import { canLinkCells, handleLinkCells } from './logic/groupLogic';
-  import ColorPaletteTest from './components/common/ColorPaletteTest.svelte';
-  
   // Track the next color index to use
   let nextColorIndex = 0;
   let nextGroupNumber = 1;
-  let showPalette = false;
 
   // Handle ESC and Enter keys for deselection
   function handleKeyDown(event) {
@@ -64,18 +61,7 @@
   $: cellGroups = getCellGroups($leftTableStore, $middleTableStore, $mainTableStore);
 </script>
 
-<div style="position: absolute; top: 1rem; right: 1rem; z-index: 100;">
-  {#if !showPalette}
-    <button on:click={() => showPalette = true} style="padding: 0.5em 1em; border-radius: 6px; border: 1px solid #ccc; background: #fff; cursor: pointer;">Show Color Palette</button>
-  {/if}
-  {#if showPalette}
-    <button on:click={() => showPalette = false} style="padding: 0.5em 1em; border-radius: 6px; border: 1px solid #ccc; background: #fff; cursor: pointer;">Back to app</button>
-  {/if}
-</div>
 
-{#if showPalette}
-  <ColorPaletteTest />
-{:else}
   <main class="h-screen bg-sky-50 p-0 flex flex-col overflow-auto">
     <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
     <div class="flex-1 flex flex-col" on:click={event => {
@@ -161,4 +147,3 @@
       </div>
     </div>
   </main>
-{/if}

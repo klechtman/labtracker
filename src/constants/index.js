@@ -11,36 +11,36 @@ export const groupColors = [
 ];
 
 export const GROUP_COLOR_HEX = {
-  'cat1': '#F28C97',
-  'cat2': '#E26A6A',
-  'cat3': '#D8516B',
-  'cat4': '#C75A68',
-  'cat5': '#B75C5F',
-  'cat6': '#A4494D',
-  'cat7': '#F2C87A',
-  'cat8': '#F2A65C',
-  'cat9': '#E2B88C',
-  'cat10': '#D8C35A',
-  'cat11': '#D9A94F',
-  'cat12': '#C29B3D',
-  'cat13': '#6CA5E2',
-  'cat14': '#6798D8',
-  'cat15': '#5B8CD8',
-  'cat16': '#5489C8',
-  'cat17': '#4F79B8',
-  'cat18': '#3F679E',
-  'cat19': '#9BDA7F',
-  'cat20': '#8CE297',
-  'cat21': '#82C478',
-  'cat22': '#74B464',
-  'cat23': '#6CA574',
-  'cat24': '#588F57',
-  'cat25': '#B88CCB',
-  'cat26': '#A68CE2',
-  'cat27': '#9B74C8',
-  'cat28': '#8861B8',
-  'cat29': '#7A549B',
-  'cat30': '#6B3E89',
+  'cat1': '#FFC928',  // goldenrod
+  'cat2': '#D072A7',  // orchid
+  'cat3': '#CFE8B9',  // pale green
+  'cat4': '#682D6E',  // mulberry
+  'cat5': '#F4EAB0',  // ivory
+  'cat6': '#5D91A8',  // steel teal
+  'cat7': '#EB7A2D',  // princeton orange
+  'cat8': '#2E5B4D',  // dark slate gray
+  'cat9': '#D4B2D0',  // rosy mauve
+  'cat10': '#C9C176', // old gold
+  'cat11': '#AF6175', // dusty rose
+  'cat12': '#A8CB79', // celadon
+  'cat13': '#F79B93', // salmon pink
+  'cat14': '#8B4B2F', // saddle brown
+  'cat15': '#78A16B', // laurel green
+  'cat16': '#9C76B7', // amethyst
+  'cat17': '#E9B7CE', // soft pastel pink
+  'cat18': '#FBD6B4', // peach
+  'cat19': '#9AA9D8', // blue bell
+  'cat20': '#F9D7DD', // pale pink
+  'cat21': '#B5643F', // terra cotta
+  'cat22': '#3A599E', // cobalt
+  'cat23': '#E4DAF4', // lavender
+  'cat24': '#9F3B49', // dark terra cotta
+  'cat25': '#D8AB31', // saffron
+  'cat26': '#697A3F', // olive green
+  'cat27': '#C6D9EB', // light steel blue
+  'cat28': '#8F5A85', // plum wine
+  'cat29': '#B35E6B', // medium rich rose
+  'cat30': '#A27B2B', // bronze
 };
 
 // Table configurations and group color config centralized here
@@ -64,36 +64,36 @@ export const tableConfigs = {
 
 // For easy cycling of hex values
 export const groupColorsHex = [
-  '#F28C97', // cat1
-  '#E26A6A', // cat2
-  '#D8516B', // cat3
-  '#C75A68', // cat4
-  '#B75C5F', // cat5
-  '#A4494D', // cat6
-  '#F2C87A', // cat7
-  '#F2A65C', // cat8
-  '#E2B88C', // cat9
-  '#D8C35A', // cat10
-  '#D9A94F', // cat11
-  '#C29B3D', // cat12
-  '#6CA5E2', // cat13
-  '#6798D8', // cat14
-  '#5B8CD8', // cat15
-  '#5489C8', // cat16
-  '#4F79B8', // cat17
-  '#3F679E', // cat18
-  '#9BDA7F', // cat19
-  '#8CE297', // cat20
-  '#82C478', // cat21
-  '#74B464', // cat22
-  '#6CA574', // cat23
-  '#588F57', // cat24
-  '#B88CCB', // cat25
-  '#A68CE2', // cat26
-  '#9B74C8', // cat27
-  '#8861B8', // cat28
-  '#7A549B', // cat29
-  '#6B3E89', // cat30
+  '#FFC928', // cat1 - goldenrod
+  '#D072A7', // cat2 - orchid
+  '#CFE8B9', // cat3 - pale green
+  '#682D6E', // cat4 - mulberry
+  '#F4EAB0', // cat5 - ivory
+  '#5D91A8', // cat6 - steel teal
+  '#EB7A2D', // cat7 - princeton orange
+  '#2E5B4D', // cat8 - dark slate gray
+  '#D4B2D0', // cat9 - rosy mauve
+  '#C9C176', // cat10 - old gold
+  '#AF6175', // cat11 - dusty rose
+  '#A8CB79', // cat12 - celadon
+  '#F79B93', // cat13 - salmon pink
+  '#8B4B2F', // cat14 - saddle brown
+  '#78A16B', // cat15 - laurel green
+  '#9C76B7', // cat16 - amethyst
+  '#E9B7CE', // cat17 - soft pastel pink
+  '#FBD6B4', // cat18 - peach
+  '#9AA9D8', // cat19 - blue bell
+  '#F9D7DD', // cat20 - pale pink
+  '#B5643F', // cat21 - terra cotta
+  '#3A599E', // cat22 - cobalt
+  '#E4DAF4', // cat23 - lavender
+  '#9F3B49', // cat24 - dark terra cotta
+  '#D8AB31', // cat25 - saffron
+  '#697A3F', // cat26 - olive green
+  '#C6D9EB', // cat27 - light steel blue
+  '#8F5A85', // cat28 - plum wine
+  '#B35E6B', // cat29 - medium rich rose
+  '#A27B2B', // cat30 - bronze
 ]; 
 
 // Cell-specific styles are now in cellStyles.js 

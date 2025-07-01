@@ -69,36 +69,36 @@ export function getCellClass({ state, linked, outFridge, groupHover, isSelected,
 
 // Map Tailwind group color names to hex values
 export const GROUP_COLOR_HEX = {
-  'cat1': '#F28C97',
-  'cat2': '#E26A6A',
-  'cat3': '#D8516B',
-  'cat4': '#C75A68',
-  'cat5': '#B75C5F',
-  'cat6': '#A4494D',
-  'cat7': '#F2C87A',
-  'cat8': '#F2A65C',
-  'cat9': '#E2B88C',
-  'cat10': '#D8C35A',
-  'cat11': '#D9A94F',
-  'cat12': '#C29B3D',
-  'cat13': '#6CA5E2',
-  'cat14': '#6798D8',
-  'cat15': '#5B8CD8',
-  'cat16': '#5489C8',
-  'cat17': '#4F79B8',
-  'cat18': '#3F679E',
-  'cat19': '#9BDA7F',
-  'cat20': '#8CE297',
-  'cat21': '#82C478',
-  'cat22': '#74B464',
-  'cat23': '#6CA574',
-  'cat24': '#588F57',
-  'cat25': '#B88CCB',
-  'cat26': '#A68CE2',
-  'cat27': '#9B74C8',
-  'cat28': '#8861B8',
-  'cat29': '#7A549B',
-  'cat30': '#6B3E89',
+  'cat1': '#FFC928',  // goldenrod
+  'cat2': '#D072A7',  // orchid
+  'cat3': '#CFE8B9',  // pale green
+  'cat4': '#682D6E',  // mulberry
+  'cat5': '#F4EAB0',  // ivory
+  'cat6': '#5D91A8',  // steel teal
+  'cat7': '#EB7A2D',  // princeton orange
+  'cat8': '#2E5B4D',  // dark slate gray
+  'cat9': '#D4B2D0',  // rosy mauve
+  'cat10': '#C9C176', // old gold
+  'cat11': '#AF6175', // dusty rose
+  'cat12': '#A8CB79', // celadon
+  'cat13': '#F79B93', // salmon pink
+  'cat14': '#8B4B2F', // saddle brown
+  'cat15': '#78A16B', // laurel green
+  'cat16': '#9C76B7', // amethyst
+  'cat17': '#E9B7CE', // soft pastel pink
+  'cat18': '#FBD6B4', // peach
+  'cat19': '#9AA9D8', // blue bell
+  'cat20': '#F9D7DD', // pale pink
+  'cat21': '#B5643F', // terra cotta
+  'cat22': '#3A599E', // cobalt
+  'cat23': '#E4DAF4', // lavender
+  'cat24': '#9F3B49', // dark terra cotta
+  'cat25': '#D8AB31', // saffron
+  'cat26': '#697A3F', // olive green
+  'cat27': '#C6D9EB', // light steel blue
+  'cat28': '#8F5A85', // plum wine
+  'cat29': '#B35E6B', // medium rich rose
+  'cat30': '#A27B2B', // bronze
 };
 
 export function getGroupColorHex(colorName) {
