@@ -13,10 +13,7 @@
   // Update cellGroups reactively
   $: cellGroups = getCellGroups($leftTableStore ?? {}, $middleTableStore ?? {}, $mainTableStore ?? {});
 
-  // Watch for link mode changes
-  $: if ($isLinkMode && $selectedGroup) {
-    selectedGroup.set($selectedGroup);
-  }
+  // Watch for link mode changes - removed problematic logic
 
   // Activate/deactivate group mode based on group selection
   $: if ($selectedGroup) {
@@ -112,13 +109,13 @@
   <Button 
     icon={unlink} 
     color="amber"
-    disabled={!$selectedGroup}
+    disabled={!$selectedGroup || $isLinkMode}
     on:click={() => { groupActionType = 'unlink'; showGroupActionModal = true; }}
   />
   <Button 
     icon={erase} 
     color="red"
-    disabled={!$selectedGroup}
+    disabled={!$selectedGroup || $isLinkMode}
     on:click={() => { groupActionType = 'delete'; showGroupActionModal = true; }}
   />
 </div>

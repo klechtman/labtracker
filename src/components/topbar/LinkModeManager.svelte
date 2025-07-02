@@ -93,7 +93,7 @@ function handleLinkCells(event) {
       });
     });
     selectedCells.set(groupCells);
-    selectedGroup.set(null);
+    // Don't clear selectedGroup here - keep it selected in the group bar
     isLinkMode.set(true);
     isGroupMode.set(false);
     return;
@@ -141,6 +141,9 @@ function handleLinkCells(event) {
     });
     selectedCells.set(new Set());
     isLinkMode.set(false);
+    isGroupMode.set(false);
+    selectedGroup.set(null);
+    // Don't clear selected group when linking is completed - keep it selected
   } else {
     isLinkMode.update(mode => !mode);
     if (!$isLinkMode) {
@@ -155,6 +158,8 @@ function handleModalCancel() {
   selectedCells.set(new Set());
   isLinkMode.set(false);
   isGroupMode.set(false);
+  selectedGroup.set(null);
+  // Don't clear selected group when cancelling modal - keep it selected
 }
 
 function handleModalAccept() {
@@ -187,7 +192,10 @@ function handleModalAccept() {
   });
   selectedCells.set(new Set());
   isLinkMode.set(false);
+  isGroupMode.set(false);
+  selectedGroup.set(null);
   showLinkGroupModal = false;
+  // Don't clear selected group when linking is completed via modal - keep it selected
 }
 
 function handleKeyDown(event) {
@@ -225,6 +233,7 @@ function getSelectedPlateNames() {
         selectedCells.set(new Set());
         isLinkMode.set(false);
         isGroupMode.set(false);
+        // Don't clear selected group when cancelling - keep it selected
       }}
     >
       Cancel

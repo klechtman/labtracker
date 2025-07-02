@@ -3,6 +3,7 @@
   import X from '../icons/X.svelte';
   import { INPUT_BASE_CLASS, INPUT_STYLE_MAP } from '../../constants/inputStyles';
   import { GROUP_COLOR_HEX } from '../../constants';
+  import { clickOutside } from '../../lib/clickOutside';
 
   const dispatch = createEventDispatcher();
 
@@ -19,6 +20,8 @@
   let renameValue = '';
   let renameInput;
   let renameHover = false;
+  let xHover = false;
+  let justClosed = false;
 
   function getGroupColor(c) {
     if (!c) return '#cbd5e1';
@@ -29,14 +32,19 @@
     if (Object.keys(groups).length === 0 || isLinkMode || isRenaming) return;
     showDropdown = true;
   }
-  function closeDropdown() { showDropdown = false; }
+  function closeDropdown() { 
+    showDropdown = false; 
+    justClosed = true;
+    setTimeout(() => { justClosed = false; }, 0);
+  }
   function toggleDropdown() {
     if (Object.keys(groups).length === 0 || isLinkMode || isRenaming) return;
+    if (justClosed) return;
     showDropdown = !showDropdown;
   }
 
   function startRename() {
-    if (disabled || !value || !groups[value]) return;
+    if (disabled || isLinkMode || !value || !groups[value]) return;
     isRenaming = true;
     renameValue = value;
     setTimeout(() => {
@@ -74,7 +82,9 @@
     if (e.key === 'Enter' || e.key === ' ') toggleDropdown();
   }
   function handleTriggerClick(e) {
-    if (!e.target.classList.contains('rename-area')) toggleDropdown();
+    if (!e.target.classList.contains('rename-area')) {
+      toggleDropdown();
+    }
   }
   function handleTriggerKeydown(e) {
     if (!e.target.classList.contains('rename-area')) {
@@ -116,14 +126,13 @@
         : []),
       ...(isRenaming
         ? INPUT_STYLE_MAP.hover
-        : (renameHover ? [] : INPUT_STYLE_MAP.buttonHover)),
+        : (renameHover || xHover ? [] : INPUT_STYLE_MAP.buttonHover)),
       disabled ? INPUT_STYLE_MAP.disabled.join(' ') : '',
       extraClasses,
       renameHover ? 'hover:bg-sky-100' : ''
     ].join(' ')}
     aria-disabled={Object.keys(groups).length === 0 || isLinkMode}
     on:click={handleTriggerClick}
-    on:mousedown|stopPropagation
     on:keydown={handleTriggerKeydown}
   >
     <span
@@ -140,7 +149,7 @@
           on:keydown={handleRenameKeydown}
           on:blur={handleRenameBlur}
         />
-      {:else if value && groups[value]}
+      {:else if value && groups[value] && !isLinkMode}
         <span
           class="rename-area cursor-text"
           role="button"
@@ -159,16 +168,18 @@
       {/if}
     </span>
     <div class="flex items-center">
-      {#if value}
+      {#if value && !isRenaming && !isLinkMode}
         <span
           role="button"
           tabindex="0"
-          class="p-0.5 rounded hover:bg-slate-200"
+          class="p-0.5 rounded hover:bg-pink-50 group"
+          on:mouseenter={() => xHover = true}
+          on:mouseleave={() => xHover = false}
           on:click|stopPropagation={handleDeselect}
           on:keydown|stopPropagation={(e) => { if(e.key === ' ' || e.key === 'Enter') handleDeselect(e) }}
           title="Deselect group"
         >
-          <X className="w-4 h-4 text-slate-600"/>
+          <X className="w-4 h-4 text-slate-600 group-hover:text-pink-600"/>
         </span>
       {/if}
       <svg class="w-4 h-4 ml-1 flex-shrink-0 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -183,17 +194,9 @@
       class="absolute left-0 mt-1 w-[200px] bg-white border border-slate-200 rounded shadow z-10 py-2 max-h-60 overflow-auto"
       on:click|self={closeDropdown}
       on:keydown={handleDropdownKeydown}
+      use:clickOutside={closeDropdown}
     >
-      <div
-        role="menuitem"
-        tabindex="0"
-        class="flex items-center gap-2 px-3 py-1 cursor-pointer hover:bg-slate-100 w-full text-left"
-        on:click={() => selectGroup('linked-plates')}
-        on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && selectGroup('linked-plates')}
-      >
-        <span class="w-5 h-5 rounded border border-slate-300 flex-shrink-0" style="background-color: #cbd5e1;"></span>
-        <span class="text-slate-500 truncate">No group selected</span>
-      </div>
+
       {#each Object.entries(groups) as [groupName, group]}
         <div
           role="menuitem"

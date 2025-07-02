@@ -38,7 +38,12 @@
   let isBlurFromTopBar = false;
 
   // Add a computed variable to lock down interaction if a group is selected
-  $: isGroupSelectionMode = Boolean($selectedGroup);
+  $: isGroupSelectionMode = Boolean($selectedGroup) && !$isLinkMode;
+
+  // Stop editing when link mode is activated - this ensures cells in renaming mode enter selected mode
+  $: if ($isLinkMode && isEditing) {
+    isEditing = false;
+  }
 
   // Start editing when cell is selected and not in link mode or group selection mode
   $: if ($selectedCells.has(cellKey) && !$isLinkMode && !isEditing && !isSelectedGroup && !isGroupSelectionMode) {

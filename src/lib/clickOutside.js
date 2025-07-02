@@ -1,15 +1,15 @@
 export function clickOutside(node, callback) {
   const handleClick = event => {
     if (node && !node.contains(event.target) && !event.defaultPrevented) {
-      callback();
+      callback(event);
     }
   };
 
-  document.addEventListener('mousedown', handleClick, true);
+  document.addEventListener('click', handleClick, true);
 
   return {
     destroy() {
-      document.removeEventListener('mousedown', handleClick, true);
+      document.removeEventListener('click', handleClick, true);
     }
   };
 } 

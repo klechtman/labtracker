@@ -151,7 +151,7 @@
         });
         
         selectedCells.set(groupCells);
-        selectedGroup.set(null);
+        // Don't clear selectedGroup here - keep it selected in the group bar
         isLinkMode.set(true);
         isGroupMode.set(false);
         return;
@@ -201,6 +201,7 @@
         });
         selectedCells.set(new Set());
         isLinkMode.set(false);
+        // Don't clear selected group when linking is completed - keep it selected
       } else {
         // Toggle link mode
         isLinkMode.update(mode => !mode);
