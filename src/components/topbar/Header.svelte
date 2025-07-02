@@ -13,6 +13,7 @@
     import { groupColors, groupColorsHex } from '../../constants';
     import { unlinkCell, eraseCell } from '../../logic/groupLogic';
     import LinkModeManager from './LinkModeManager.svelte';
+    import { localStorage } from '../../lib/localStorage';
   
     // Toggle Fridge handler
     function handleToggleFridge() {
@@ -311,20 +312,29 @@
       // Clear selection
       selectedCells.set(new Set());
     }
+
+    // Function to clear localStorage and reload the app
+    function handleClearData() {
+      localStorage.clear();
+      window.location.reload();
+    }
   </script>
   
   <header class={cn(
     "h-14 bg-white shadow-sm fixed top-0 left-0 right-0 z-10"
   )}>
     <div class={cn(
-      "h-full flex items-center justify-between px-12"
+      "h-full flex items-center justify-between px-12 gap-4"
     )}>
-      <div class="flex items-center gap-6">
+      <div class="flex items-center gap-6 min-w-fit">
         <CellInfoBar />
       </div>
-      <div class="flex items-center justify-center flex-1">
+      <div class="flex items-center justify-center flex-1 min-w-fit">
         <GroupInfoBar />
       </div>
-      <LinkModeManager />
+      <div class="flex items-center gap-4 min-w-fit">
+        <LinkModeManager />
+        <Button on:click={handleClearData} color="red" size="sm">Clear Data</Button>
+      </div>
     </div>
   </header> 

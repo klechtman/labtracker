@@ -91,7 +91,7 @@
   }
 </script>
 
-<div class="flex items-center gap-3">
+<div class="flex items-center gap-2">
   <span class="font-title text-sky-800 select-none inline-block">
     Groups:
   </span>

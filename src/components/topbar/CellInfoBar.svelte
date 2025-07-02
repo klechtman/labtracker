@@ -145,7 +145,7 @@
   $: canUnlink = $selectedCellData && $selectedCellData.linked;
 </script>
 
-<div class="flex items-center gap-3">
+<div class="flex items-center gap-2">
   <span class="font-title select-none w-[180px] inline-block">
     {#if cellKey}
       {getCellPosition(cellKey)}

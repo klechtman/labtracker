@@ -172,7 +172,7 @@
         <span
           role="button"
           tabindex="0"
-          class="p-0.5 rounded hover:bg-pink-50 group"
+          class="p-1 rounded hover:bg-pink-50 group"
           on:mouseenter={() => xHover = true}
           on:mouseleave={() => xHover = false}
           on:click|stopPropagation={handleDeselect}

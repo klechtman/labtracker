@@ -1,9 +1,22 @@
 import { writable, derived } from 'svelte/store';
 import { tableConfigs } from '../constants';
+import { localStorage } from '../lib/localStorage';
 
-// Create stores for each table's cells
-const createTableStore = () => {
-  const { subscribe, set, update } = writable({});
+// Create stores for each table's cells with localStorage persistence
+const createTableStore = (storeName) => {
+  // Load initial data from localStorage
+  const savedData = localStorage.load();
+  const initialData = savedData?.[storeName] || {};
+  
+  const { subscribe, set, update } = writable(initialData);
+  
+  // Subscribe to changes and save to localStorage
+  subscribe(value => {
+    const currentData = localStorage.load() || {};
+    currentData[storeName] = value;
+    localStorage.save(currentData);
+  });
+  
   return {
     subscribe,
     updateCell: (cellKey, data) => update(cells => ({
@@ -21,11 +34,11 @@ const createTableStore = () => {
   };
 };
 
-export const leftTableStore = createTableStore();
-export const middleTableStore = createTableStore();
-export const mainTableStore = createTableStore();
+export const leftTableStore = createTableStore('leftTable');
+export const middleTableStore = createTableStore('middleTable');
+export const mainTableStore = createTableStore('mainTable');
 
-// Store for selected cells across all tables
+// Store for selected cells across all tables (do NOT persist)
 export const selectedCells = writable(new Set());
 export const isLinkMode = writable(false);
 export const isGroupMode = writable(false);
@@ -54,6 +67,9 @@ export function getCellGroups(left, middle, main) {
 // Store for the currently hovered row (for global row number highlighting)
 export const hoveredRow = writable(null);
 
+// Store for the currently selected group (for group highlighting)
+export const selectedGroup = writable(null);
+
 export const selectedCellData = derived(
   [selectedCells, leftTableStore, middleTableStore, mainTableStore],
   ([$selectedCells, $leftTableStore, $middleTableStore, $mainTableStore]) => {
@@ -68,6 +84,3 @@ export const selectedCellData = derived(
     return store[cellKey] || null;
   }
 );
-
-// Store for the currently selected group (for group highlighting)
-export const selectedGroup = writable(null);
