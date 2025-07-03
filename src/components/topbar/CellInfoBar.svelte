@@ -1,5 +1,5 @@
 <script>
-  import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedCellData } from '../../stores/tableStore';
+  import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedCellData, isAnyCellEditing } from '../../stores/tableStore';
   import { getStoreByCellKey, parseCellKey } from '../../utils/cellUtils';
   import { GROUP_COLOR_HEX } from '../../constants';
   import { CELL_STATES } from '../../constants';
@@ -145,24 +145,26 @@
   $: canUnlink = $selectedCellData && $selectedCellData.linked;
 </script>
 
-<div class="flex items-center gap-2">
-  <span class="font-title select-none w-[180px] inline-block">
+<div class="grid grid-flow-col items-center gap-2">
+  <span class="font-title select-none w-[170px] min-w-[170px] inline-block">
     {#if cellKey}
       {getCellPosition(cellKey)}
     {:else}
       No cell selected
     {/if}
   </span>
-  <div class="flex items-center gap-2 cell-info-bar">
+  <div class="grid grid-flow-col items-center gap-2 cell-info-bar">
     <InputField
       type="input"
       bind:value={cellData.text}
       placeholder="Plate name"
       disabled={$isLinkMode || !cellKey}
       iconColor={getGroupColor(cellData.groupColor)}
+      isHighlighted={$isAnyCellEditing}
+      renameMode={$isAnyCellEditing}
       on:input={handleInput}
       on:keydown={handleKeyDown}
-      extraClasses="w-auto min-w-[160px]"
+      extraClasses="w-[220px] min-w-[220px]"
     />
     <Button 
       icon={incubator} 
@@ -176,11 +178,5 @@
       on:click={handleUnlink}
       disabled={!canUnlink || $isLinkMode}
     />
-    <Button 
-      icon={erase} 
-      color="red" 
-      on:click={handleErase}
-      disabled={!canFridge || $isLinkMode}
-    />
   </div>
-</div> 
+</div>

@@ -29,14 +29,18 @@ export const CELL_PADDING = {
 
 // Style classes for each cell state (edit here for all cell appearance)
 export const CELL_STYLE_MAP = {
-  empty: ['bg-white', 'text-slate-500', 'border-slate-300'],
-  regular: ['bg-white', 'text-slate-700', 'border-slate-300'],
-  hover: ['bg-white', 'text-slate-700', 'border-sky-600', 'hover:bg-sky-100'],
+  empty: ['bg-white', 'text-slate-400', 'border-slate-200'],
+  regular: ['bg-white', 'text-slate-700', 'border-slate-200'],
+  hover: ['bg-white', 'text-slate-900', 'border-sky-600', 'hover:bg-sky-200',],
   selected: ['font-bold', 'border-slate-700'],
-  outFridge: ['bg-white', 'border-dashed', 'border-slate-700', 'italic', 'text-slate-500', 'hover:bg-sky-100'],
+  outFridge: ['bg-slate-100', 'border-dashed', 'border-slate-700', 'italic', 'text-slate-500', 'hover:bg-sky-100'],
   disabled: ['bg-white', 'opacity-50', 'cursor-not-allowed'],
-  selectedGroup: ['bg-sky-100'],
   selectedEmpty: ['bg-white', 'border-slate-700'],
   hoverEmpty: ['hover:bg-sky-100'],
-  editing: ['bg-sky-50', 'border-sky-500', 'ring-2', 'ring-sky-200'],
+  editing: ['bg-sky-100', 'border-sky-400', 'ring-2', 'ring-sky-200'],
+
+  // Grouped cell styles (for any cell in a group)
+  grouped: ['text-slate-700', 'border-slate-200', 'bg-white'],
+  groupedHover: ['bg-sky-200', 'text-sky-700', 'border-sky-300', 'hover:bg-sky-200', 'hover:border-sky-600', 'hover:text-slate-900'],
+  groupedSelected: ['font-bold', 'border-slate-700', 'bg-slate-200'],
 };

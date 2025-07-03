@@ -38,6 +38,52 @@ export const leftTableStore = createTableStore('leftTable');
 export const middleTableStore = createTableStore('middleTable');
 export const mainTableStore = createTableStore('mainTable');
 
+// Store for group order tracking with localStorage persistence
+const createGroupOrderStore = () => {
+  // Load initial data from localStorage
+  const savedData = localStorage.load();
+  const initialData = {
+    nextColorIndex: savedData?.nextColorIndex || 0,
+    nextGroupNumber: savedData?.nextGroupNumber || 1
+  };
+  
+  const { subscribe, set, update } = writable(initialData);
+  
+  // Subscribe to changes and save to localStorage
+  subscribe(value => {
+    const currentData = localStorage.load() || {};
+    currentData.nextColorIndex = value.nextColorIndex;
+    currentData.nextGroupNumber = value.nextGroupNumber;
+    localStorage.save(currentData);
+  });
+  
+  return {
+    subscribe,
+    setNextColorIndex: (index) => update(data => ({ ...data, nextColorIndex: index })),
+    setNextGroupNumber: (number) => update(data => ({ ...data, nextGroupNumber: number })),
+    incrementColorIndex: () => update(data => { 
+      const newIndex = (data.nextColorIndex + 1) % 30;
+      console.log('incrementColorIndex called, newIndex:', newIndex);
+      return { 
+        ...data, 
+        nextColorIndex: newIndex
+      };
+    }),
+    incrementGroupNumber: () => update(data => { 
+      const newNumber = data.nextGroupNumber + 1;
+      console.log('incrementGroupNumber called, newNumber:', newNumber);
+      return { 
+        ...data, 
+        nextGroupNumber: newNumber 
+      };
+    }),
+    reset: () => set({ nextColorIndex: 0, nextGroupNumber: 1 }),
+    set,
+  };
+};
+
+export const groupOrderStore = createGroupOrderStore();
+
 // Store for selected cells across all tables (do NOT persist)
 export const selectedCells = writable(new Set());
 export const isLinkMode = writable(false);
@@ -84,3 +130,6 @@ export const selectedCellData = derived(
     return store[cellKey] || null;
   }
 );
+
+// Store to track if any cell is currently being edited
+export const isAnyCellEditing = writable(false);

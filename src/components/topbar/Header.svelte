@@ -6,14 +6,34 @@
     import Modal from '../common/Modal.svelte';
     import addlink from '../icons/addlink.svelte';
     import X from '../icons/X.svelte';
+    import hamburger from '../icons/hamburger.svelte';
     import { selectedCells, leftTableStore, middleTableStore, mainTableStore, getCellGroups, isLinkMode, selectedCellData, selectedGroup, isGroupMode } from '../../stores/tableStore';
+    import { isMobileMenuOpen, isSmallScreen } from '../../stores/mobileMenuStore';
     import { getStoreByCellKey } from '../../utils/cellUtils';
     import { CELL_STATES } from '../../constants';
     import { canLinkCells } from '../../logic/buttonLogic';
     import { groupColors, groupColorsHex } from '../../constants';
     import { unlinkCell, eraseCell } from '../../logic/groupLogic';
     import LinkModeManager from './LinkModeManager.svelte';
-    import { localStorage } from '../../lib/localStorage';
+
+
+    // Check screen size and handle resize
+    if (typeof window !== 'undefined') {
+      const checkScreen = () => {
+        const smallScreen = window.innerWidth <= 1300;
+        isSmallScreen.set(smallScreen);
+        if (!smallScreen) {
+          isMobileMenuOpen.set(false);
+        }
+      };
+      checkScreen();
+      window.addEventListener('resize', checkScreen);
+    }
+
+    // Toggle mobile menu
+    function toggleMobileMenu() {
+      isMobileMenuOpen.update(open => !open);
+    }
   
     // Toggle Fridge handler
     function handleToggleFridge() {
@@ -47,8 +67,6 @@
     }
   
     // Link Cells handler
-    let nextColorIndex = 0;
-    let nextGroupNumber = 1;
     $: canLink = (() => {
       // If we're in link mode, use the existing logic
       if ($isLinkMode) {
@@ -313,28 +331,43 @@
       selectedCells.set(new Set());
     }
 
-    // Function to clear localStorage and reload the app
-    function handleClearData() {
-      localStorage.clear();
-      window.location.reload();
-    }
+
   </script>
   
   <header class={cn(
-    "h-14 bg-white shadow-sm fixed top-0 left-0 right-0 z-10"
+    "h-12 bg-white shadow-sm sticky top-0 z-10"
   )}>
     <div class={cn(
-      "h-full flex items-center justify-between px-12 gap-4"
+      "h-full flex items-center justify-between px-9 gap-4"
     )}>
       <div class="flex items-center gap-6 min-w-fit">
         <CellInfoBar />
-      </div>
-      <div class="flex items-center justify-center flex-1 min-w-fit">
-        <GroupInfoBar />
+        {#if !$isSmallScreen}
+          <div class="w-px h-12 bg-gray-300 self-stretch"></div>
+          <GroupInfoBar />
+          <div class="w-px h-12 bg-gray-300 self-stretch"></div>
+        {:else}
+          <div class="w-px h-12 bg-gray-300 self-stretch"></div>
+          <div class="relative">
+            <Button 
+              icon={hamburger} 
+              color="sky" 
+              size="sm"
+              on:click={toggleMobileMenu}>
+              Groups</Button>
+            {#if $isMobileMenuOpen}
+              <div class="absolute left-0 top-full mt-3 bg-white shadow z-10 rounded border border-gray-200 min-w-[220px]">
+                <div class="px-3 py-2">
+                  <GroupInfoBar mobile={true} />
+                </div>
+              </div>
+            {/if}
+          </div>
+          <div class="w-px h-12 bg-gray-300 self-stretch"></div>
+        {/if}
       </div>
       <div class="flex items-center gap-4 min-w-fit">
         <LinkModeManager />
-        <Button on:click={handleClearData} color="red" size="sm">Clear Data</Button>
       </div>
     </div>
   </header> 

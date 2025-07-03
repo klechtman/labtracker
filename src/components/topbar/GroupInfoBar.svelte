@@ -7,6 +7,9 @@
   import Modal from '../common/Modal.svelte';
   import GroupInput from '../common/GroupInput.svelte';
 
+  // Add mobile prop to conditionally hide "Groups:" text
+  export let mobile = false;
+
   let showGroupActionModal = false;
   let groupActionType = null; // 'unlink' or 'delete'
 
@@ -92,9 +95,11 @@
 </script>
 
 <div class="flex items-center gap-2">
-  <span class="font-title text-sky-800 select-none inline-block">
-    Groups:
-  </span>
+  {#if !mobile}
+    <span class="font-title text-sky-800 select-none inline-block">
+      Groups:
+    </span>
+  {/if}
   <GroupInput
     value={$selectedGroup || ''}
     placeholder="No group selected"

@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher, onMount } from 'svelte';
   import X from '../icons/X.svelte';
-  import { INPUT_BASE_CLASS, INPUT_STYLE_MAP } from '../../constants/inputStyles';
+  import { INPUT_STYLES } from '../../constants/inputStyles';
   import { GROUP_COLOR_HEX } from '../../constants';
   import { clickOutside } from '../../lib/clickOutside';
 
@@ -119,15 +119,18 @@
   <div
     {...(!isRenaming ? { role: 'button', tabindex: '0' } : {})}
     class={[
-      ...INPUT_BASE_CLASS,
-      ...INPUT_STYLE_MAP.inputDefault,
+      ...INPUT_STYLES.base,
+      ...(
+        isRenaming
+          ? []
+          : INPUT_STYLES.default.filter(cls => cls !== 'hover:bg-sky-100' || !xHover)
+      ),
+      isRenaming ? INPUT_STYLES.focus.find(cls => cls.startsWith('bg-')) : '',
+      isRenaming ? INPUT_STYLES.focus.filter(cls => !cls.startsWith('bg-')).join(' ') : '',
       ...(isRenaming
-        ? INPUT_STYLE_MAP.focus
-        : []),
-      ...(isRenaming
-        ? INPUT_STYLE_MAP.hover
-        : (renameHover || xHover ? [] : INPUT_STYLE_MAP.buttonHover)),
-      disabled ? INPUT_STYLE_MAP.disabled.join(' ') : '',
+        ? []
+        : (renameHover || xHover ? [] : INPUT_STYLES.button)),
+      disabled ? INPUT_STYLES.disabled.join(' ') : '',
       extraClasses,
       renameHover ? 'hover:bg-sky-100' : ''
     ].join(' ')}
@@ -197,7 +200,7 @@
       use:clickOutside={closeDropdown}
     >
 
-      {#each Object.entries(groups) as [groupName, group]}
+      {#each Object.entries(groups).sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true, sensitivity: 'base' })) as [groupName, group]}
         <div
           role="menuitem"
           tabindex="0"

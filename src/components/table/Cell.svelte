@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher, getContext } from 'svelte';
   import { CELL_STATES, GROUP_COLOR_HEX } from '../../constants';
-  import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup, isGroupMode } from '../../stores/tableStore';
+  import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup, isGroupMode, isAnyCellEditing } from '../../stores/tableStore';
   import { hoveredGroup } from '../../stores/hoverStore';
   import { cn } from '../../lib/utils';
   import { updateCellName, getStoreByCellKey, getCellClass, getCellStyle } from '../../utils/cellUtils';
@@ -65,6 +65,15 @@
     isEditing = false;
   }
 
+  // Update the global editing state when this cell's editing state changes
+  $: if (isEditing) {
+    isAnyCellEditing.set(true);
+  } else {
+    // When this cell stops editing, set the global state to false
+    // The next cell that starts editing will set it back to true
+    isAnyCellEditing.set(false);
+  }
+
   // Enforce that outFridge can never be true when state is empty
   $: outFridge = state === CELL_STATES.EMPTY ? false : outFridge;
 
@@ -86,7 +95,7 @@
     outFridge, 
     groupHover, 
     isSelected: $selectedCells.has(cellKey),
-    isDisabled: ($isLinkMode && !text.trim() && !linked) || isFromDifferentGroup || ($isGroupMode && !linked),
+    isDisabled: ($isLinkMode && !text.trim() && !linked) || isFromDifferentGroup || isFromDifferentGroupInGroupMode || ($isGroupMode && !linked),
     isSelectedGroup,
     isEditing
   });
@@ -97,8 +106,10 @@
     groupColor, 
     bgColor, 
     isSelected: $selectedCells.has(cellKey),
-    isDisabled: ($isLinkMode && !text.trim() && !linked) || isFromDifferentGroup || ($isGroupMode && !linked),
-    isSelectedGroup
+    isDisabled: ($isLinkMode && !text.trim() && !linked) || isFromDifferentGroup || isFromDifferentGroupInGroupMode || ($isGroupMode && !linked),
+    isSelectedGroup,
+    isEditing,
+    outFridge
   });
 
   function setState(newState) {
@@ -193,6 +204,9 @@
     
     // Don't allow selection of cells not in the selected group when in group mode
     if ($isGroupMode && !linked) return;
+    
+    // Don't allow selection of cells from other groups when in group mode
+    if (isFromDifferentGroupInGroupMode) return;
 
     selectedCells.update(set => {
       const newSet = new Set(set);
@@ -257,7 +271,7 @@
     )} style="background: var(--color-sky-800, #0369a1);">{col + 1}</div>
   {/if}
   {#if linked}
-    <div class="absolute top-0 right-0 w-0 h-0 z-2" style="border-top: 1rem solid {groupColor}; border-left: 1rem solid transparent;"></div>
+    <div class="absolute top-0 right-0 w-0 h-0 z-2" style="border-top: 1rem solid {isEditing ? '#0284c7' : (state === CELL_STATES.HOVER || $selectedCells.has(cellKey) || groupHover || isSelectedGroup) ? '#075985' : groupColor}; border-left: 1rem solid transparent;"></div>
   {/if}
   {#if isEditing}
     <input

@@ -4,7 +4,7 @@ import Modal from '../common/Modal.svelte';
 import addlink from '../icons/addlink.svelte';
 import X from '../icons/X.svelte';
 import { groupColorsHex } from '../../constants';
-import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup, selectedCellData, isGroupMode } from '../../stores/tableStore';
+import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup, selectedCellData, isGroupMode, groupOrderStore } from '../../stores/tableStore';
 import { getStoreByCellKey } from '../../utils/cellUtils';
 import { CELL_STATES } from '../../constants';
 import { createEventDispatcher } from 'svelte';
@@ -15,8 +15,6 @@ const dispatch = createEventDispatcher();
 let showLinkGroupModal = false;
 let newGroupName = '';
 let linkingCells = [];
-let nextColorIndex = 0;
-let nextGroupNumber = 1;
 
 $: canLink = (() => {
   if ($isLinkMode) {
@@ -173,9 +171,13 @@ function handleModalAccept() {
     alert('A group with this name already exists. Please choose a different name.');
     return;
   }
-  const groupColor = groupColorsHex[nextColorIndex];
-  nextColorIndex = (nextColorIndex + 1) % groupColorsHex.length;
-  nextGroupNumber++;
+  const groupColor = groupColorsHex[$groupOrderStore.nextColorIndex];
+  groupOrderStore.incrementColorIndex();
+  groupOrderStore.incrementGroupNumber();
+  // Log after incrementing
+  setTimeout(() => {
+    console.log('AFTER INCREMENT $groupOrderStore:', $groupOrderStore);
+  }, 100);
   linkingCells.forEach(cellKey => {
     const [fridge] = cellKey.split('-');
     const store = fridge === 'left' ? leftTableStore : 
@@ -222,6 +224,10 @@ function getSelectedPlateNames() {
   });
   return names;
 }
+
+$: if (showLinkGroupModal) {
+  console.log('DEBUG groupOrderStore:', $groupOrderStore);
+}
 </script>
 
 <div class="flex items-center gap-2">
@@ -245,7 +251,7 @@ function getSelectedPlateNames() {
     on:click={handleLinkCells}
     disabled={!canLink || ($isLinkMode && !canLinkSelectedCells)}
   >
-    {$isLinkMode ? 'Link Selected Cells' : 'Start Linking Cells'}
+    {$isLinkMode ? 'Group' : 'Create Group'}
   </Button>
 
   {#if showLinkGroupModal}
@@ -274,13 +280,14 @@ function getSelectedPlateNames() {
             type="input"
             placeholder="Study, project, etc."
             bind:value={newGroupName}
-            iconColor={groupColorsHex[nextColorIndex]}
+            iconColor={groupColorsHex[$groupOrderStore.nextColorIndex]}
             on:keydown={(e) => {
               if (e.key === 'Enter' && newGroupName.trim()) {
                 handleModalAccept();
               }
             }}
             extraClasses="w-full max-w-xs"
+            renameMode={true}
           />
         </div>
         <div class="w-full">

@@ -1,17 +1,16 @@
 <script>
   import Cell from './components/table/Cell.svelte';
   import Table from './components/table/Table.svelte';
-  import { selectedCells, leftTableStore, middleTableStore, mainTableStore, getCellGroups, isLinkMode, selectedGroup } from './stores/tableStore';
+  import { selectedCells, leftTableStore, middleTableStore, mainTableStore, getCellGroups, isLinkMode, selectedGroup, groupOrderStore } from './stores/tableStore';
+  import { isMobileMenuOpen, isSmallScreen } from './stores/mobileMenuStore';
   import { CELL_STATES } from './constants';
   import Header from './components/topbar/Header.svelte';
+  import FloatingDataBar from './components/topbar/FloatingDataBar.svelte';
   import RowNumber from './components/table/RowNumber.svelte';
   import Button from './components/common/Button.svelte';
   import { groupColors, groupColorsHex } from './constants';
   import { tableConfigs } from './constants';
-  import { canLinkCells, handleLinkCells } from './logic/groupLogic';
-  // Track the next color index to use
-  let nextColorIndex = 0;
-  let nextGroupNumber = 1;
+  import { canLinkCells } from './logic/groupLogic';
 
   // Handle ESC and Enter keys for deselection
   function handleKeyDown(event) {
@@ -45,14 +44,7 @@
   const totalColumns = tableConfigs.left.columns + tableConfigs.middle.columns + tableConfigs.main.columns;
   const minGridWidth = totalColumns * 60 + 200; // 60px per column + extra space for gaps, row numbers, etc.
 
-  let isSmallScreen = false;
-  if (typeof window !== 'undefined') {
-    const checkScreen = () => {
-      isSmallScreen = window.innerWidth <= 1300;
-    };
-    checkScreen();
-    window.addEventListener('resize', checkScreen);
-  }
+
 
   // For row numbers
   const maxRows = 21; // global, as per your requirement
@@ -62,7 +54,7 @@
 </script>
 
 
-  <main class="h-screen bg-sky-50 p-0 flex flex-col overflow-auto">
+  <main class="h-screen bg-sky-50 p-0 flex flex-col overflow-auto" style="min-width: 600px;">
     <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
     <div class="flex-1 flex flex-col" on:click={event => {
       if (!$isLinkMode && !event.target.closest('button, input, select, .cell, [role=\"button\"]')) {
@@ -70,23 +62,24 @@
       }
     }}>
       <Header title="Lab Tool" />
-      <div class="flex-1 flex flex-col justify-end pt-28 pb-7 px-9 overflow-x-auto">
+      <FloatingDataBar />
+      <div class="flex-1 flex flex-col justify-end pt-16 pb-7 px-9 overflow-x-auto">
         <div
-          class="grid tables-row w-full min-w-0 {isSmallScreen ? 'gap-y-12' : ''}"
+          class="grid tables-row w-full min-w-0 {$isSmallScreen ? 'gap-y-12' : ''}"
           style={`
             display: grid;
-            min-width: ${isSmallScreen ? Math.max(400, tableConfigs.left.columns * 60 + tableConfigs.middle.columns * 60 + 100) + 'px' : minGridWidth + 'px'};
+            min-width: ${$isSmallScreen ? Math.max(400, tableConfigs.left.columns * 60 + tableConfigs.middle.columns * 60 + 100) + 'px' : minGridWidth + 'px'};
             align-items: end;
-            height: ${isSmallScreen ? 'auto' : '100%'};
+            height: ${$isSmallScreen ? 'auto' : '100%'};
             grid-template-columns: ${
-              isSmallScreen
+              $isSmallScreen
                 ? '32px 4px minmax(300px, 5fr) 36px minmax(120px, 2fr)'
                 : '32px 4px minmax(300px, 5fr) 36px minmax(120px, 2fr) 36px minmax(600px, 10fr)'
             };
-            grid-template-rows: ${isSmallScreen ? 'auto auto' : 'auto'};
+            grid-template-rows: ${$isSmallScreen ? 'auto auto' : 'auto'};
           `}
         >
-          {#if isSmallScreen}
+          {#if $isSmallScreen}
             <!-- Row numbers for the top row (left and middle tables) -->
             <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1;" />
             <div class="h-full flex flex-col w-full min-w-0" style="grid-column: 3; min-width: {tableConfigs.left.columns * 60}px;">

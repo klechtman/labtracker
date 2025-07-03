@@ -1,6 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte';
-  import { INPUT_BASE_CLASS, INPUT_STYLE_MAP } from '../../constants/inputStyles';
+  import { INPUT_STYLES } from '../../constants/inputStyles';
 
   const dispatch = createEventDispatcher();
 
@@ -10,26 +10,27 @@
   export let disabled = false;
   export let iconColor = '#cbd5e1'; // Default slate-300 color
   export let extraClasses = '';
+  export let renameMode = false; // Only for CellInfoBar rename highlight
 
   let isFocused = false;
   let isHovered = false;
 
   function getInputClasses() {
-    let classes = [...INPUT_BASE_CLASS];
+    let classes = [...INPUT_STYLES.base];
     if (type === 'input') {
       if (disabled) {
-        classes = classes.concat(INPUT_STYLE_MAP.inputDefault);
-        classes = classes.concat(INPUT_STYLE_MAP.disabled);
+        classes = classes.concat(INPUT_STYLES.inputDefault);
+        classes = classes.concat(INPUT_STYLES.disabled);
       } else if (isFocused) {
-        classes = classes.concat(INPUT_STYLE_MAP.focus);
+        classes = classes.concat(INPUT_STYLES.focus);
       } else if (isHovered) {
-        classes = classes.concat(INPUT_STYLE_MAP.inputDefault);
-        classes = classes.concat(INPUT_STYLE_MAP.renameHover);
+        classes = classes.concat(INPUT_STYLES.inputDefault);
+        classes = classes.concat(INPUT_STYLES.renameHover);
       } else {
-        classes = classes.concat(INPUT_STYLE_MAP.inputDefault);
+        classes = classes.concat(INPUT_STYLES.inputDefault);
       }
     } else {
-      classes = classes.concat(INPUT_STYLE_MAP.button);
+      classes = classes.concat(INPUT_STYLES.button);
     }
     if (extraClasses) {
       classes.push(extraClasses);
@@ -38,25 +39,25 @@
   }
 
   function handleMouseEnter() {
-    if (!disabled && state !== 'focus') state = 'hover';
+    if (!disabled && !isFocused) isHovered = true;
   }
   function handleMouseLeave() {
-    if (!disabled && state === 'hover') state = 'regular';
+    if (!disabled) isHovered = false;
   }
   function handleFocus() {
-    if (!disabled) state = 'focus';
+    if (!disabled) isFocused = true;
   }
   function handleBlur() {
-    if (!disabled) state = 'regular';
+    if (!disabled) isFocused = false;
   }
 </script>
 
 <div class={[
-  ...INPUT_BASE_CLASS,
-  ...INPUT_STYLE_MAP.inputDefault,
-  ...INPUT_STYLE_MAP.focus,
-  ...INPUT_STYLE_MAP.hover,
-  disabled ? INPUT_STYLE_MAP.disabled.join(' ') : '',
+  ...INPUT_STYLES.base,
+  ...(renameMode ? [] : INPUT_STYLES.default),
+  renameMode ? INPUT_STYLES.focus.find(cls => cls.startsWith('bg-')) : '',
+  renameMode ? INPUT_STYLES.focus.filter(cls => !cls.startsWith('bg-')).join(' ') : '',
+  disabled ? INPUT_STYLES.disabled.join(' ') : '',
   extraClasses
 ].join(' ')}>
   <!-- Icon/Color Square -->
