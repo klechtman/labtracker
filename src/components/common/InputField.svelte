@@ -10,7 +10,7 @@
   export let disabled = false;
   export let iconColor = '#cbd5e1'; // Default slate-300 color
   export let extraClasses = '';
-  export let renameMode = false; // Only for CellInfoBar rename highlight
+  export let isHighlighted = false; // Auto-highlight when any cell is editing
 
   let isFocused = false;
   let isHovered = false;
@@ -21,7 +21,7 @@
       if (disabled) {
         classes = classes.concat(INPUT_STYLES.inputDefault);
         classes = classes.concat(INPUT_STYLES.disabled);
-      } else if (isFocused) {
+      } else if (isFocused || isHighlighted) {
         classes = classes.concat(INPUT_STYLES.focus);
       } else if (isHovered) {
         classes = classes.concat(INPUT_STYLES.inputDefault);
@@ -54,12 +54,12 @@
 
 <div class={[
   ...INPUT_STYLES.base,
-  ...(renameMode ? [] : INPUT_STYLES.default),
-  renameMode ? INPUT_STYLES.focus.find(cls => cls.startsWith('bg-')) : '',
-  renameMode ? INPUT_STYLES.focus.filter(cls => !cls.startsWith('bg-')).join(' ') : '',
-  disabled ? INPUT_STYLES.disabled.join(' ') : '',
+  isHighlighted ? INPUT_STYLES.highlight : INPUT_STYLES.default,
+  isFocused && !isHighlighted ? INPUT_STYLES.focus : [],
+  isHovered ? INPUT_STYLES.renameHover : [],
+  disabled ? INPUT_STYLES.disabled : [],
   extraClasses
-].join(' ')}>
+].flat().join(' ')}>
   <!-- Icon/Color Square -->
   <span
     class="w-5 h-5 rounded border border-slate-300 flex-shrink-0"
@@ -74,6 +74,10 @@
       {disabled}
       on:input
       on:keydown
+      on:focus={handleFocus}
+      on:blur={handleBlur}
+      on:mouseenter={handleMouseEnter}
+      on:mouseleave={handleMouseLeave}
     />
   {:else if type === 'button'}
     <button
