@@ -86,16 +86,13 @@
   $: groupHover = linked && $hoveredGroup === groupName;
 
   // Get cell class and style using utility functions
-  $: isFromDifferentGroup = $isLinkMode && $selectedGroup && linked && groupName !== $selectedGroup;
-  $: isFromDifferentGroupInGroupMode = $isGroupMode && $selectedGroup && linked && groupName !== $selectedGroup;
-
   $: cellClass = getCellClass({ 
     state, 
     linked, 
     outFridge, 
     groupHover, 
     isSelected: $selectedCells.has(cellKey),
-    isDisabled: ($isLinkMode && !text.trim() && !linked) || isFromDifferentGroup || isFromDifferentGroupInGroupMode || ($isGroupMode && !linked),
+    isDisabled: ($isLinkMode && !text.trim() && !linked) || ($isGroupMode && linked && groupName !== $selectedGroup) || ($isGroupMode && !linked) || ($isLinkMode && linked && (!$selectedGroup || groupName !== $selectedGroup)),
     isSelectedGroup,
     isEditing
   });
@@ -106,7 +103,7 @@
     groupColor, 
     bgColor, 
     isSelected: $selectedCells.has(cellKey),
-    isDisabled: ($isLinkMode && !text.trim() && !linked) || isFromDifferentGroup || isFromDifferentGroupInGroupMode || ($isGroupMode && !linked),
+    isDisabled: ($isLinkMode && !text.trim() && !linked) || ($isGroupMode && linked && groupName !== $selectedGroup) || ($isGroupMode && !linked) || ($isLinkMode && linked && (!$selectedGroup || groupName !== $selectedGroup)),
     isSelectedGroup,
     isEditing,
     outFridge
@@ -206,7 +203,10 @@
     if ($isGroupMode && !linked) return;
     
     // Don't allow selection of cells from other groups when in group mode
-    if (isFromDifferentGroupInGroupMode) return;
+    if ($isGroupMode && linked && groupName !== $selectedGroup) return;
+    
+    // Don't allow selection of linked cells in link mode (unless they're in the selected group)
+    if ($isLinkMode && linked && (!$selectedGroup || groupName !== $selectedGroup)) return;
 
     selectedCells.update(set => {
       const newSet = new Set(set);

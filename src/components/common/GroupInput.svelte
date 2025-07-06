@@ -14,6 +14,7 @@
   export let isLinkMode = false;
   export let extraClasses = '';
   export let iconColor = '#cbd5e1';
+  export let locked = false;
 
   let showDropdown = false;
   let isRenaming = false;
@@ -29,7 +30,7 @@
   }
 
   function openDropdown() {
-    if (Object.keys(groups).length === 0 || isLinkMode || isRenaming) return;
+    if (Object.keys(groups).length === 0 || isLinkMode || isRenaming || locked) return;
     showDropdown = true;
   }
   function closeDropdown() { 
@@ -38,13 +39,13 @@
     setTimeout(() => { justClosed = false; }, 0);
   }
   function toggleDropdown() {
-    if (Object.keys(groups).length === 0 || isLinkMode || isRenaming) return;
+    if (Object.keys(groups).length === 0 || isLinkMode || isRenaming || locked) return;
     if (justClosed) return;
     showDropdown = !showDropdown;
   }
 
   function startRename() {
-    if (disabled || isLinkMode || !value || !groups[value]) return;
+    if (disabled || isLinkMode || !value || !groups[value] || locked) return;
     isRenaming = true;
     renameValue = value;
     setTimeout(() => {
@@ -96,6 +97,7 @@
     if (e.key === 'Enter' || e.key === ' ') startRename();
   }
   function handleDeselect(e) {
+    if (locked) return;
     e.stopPropagation();
     dispatch('deselect');
     closeDropdown();
@@ -117,7 +119,7 @@
 
 <div class="relative group-dropdown">
   <div
-    {...(!isRenaming ? { role: 'button', tabindex: '0' } : {})}
+    {...(!isRenaming ? { role: 'button', tabindex: locked ? undefined : '0' } : {})}
     class={[
       ...INPUT_STYLES.base,
       ...(
@@ -130,11 +132,11 @@
       ...(isRenaming
         ? []
         : (renameHover || xHover ? [] : INPUT_STYLES.button)),
-      disabled ? INPUT_STYLES.disabled.join(' ') : '',
+      disabled || locked ? INPUT_STYLES.disabled.join(' ') : '',
       extraClasses,
       renameHover ? 'hover:bg-sky-100' : ''
     ].join(' ')}
-    aria-disabled={Object.keys(groups).length === 0 || isLinkMode}
+    aria-disabled={Object.keys(groups).length === 0 || isLinkMode || locked}
     on:click={handleTriggerClick}
     on:keydown={handleTriggerKeydown}
   >
@@ -152,7 +154,7 @@
           on:keydown={handleRenameKeydown}
           on:blur={handleRenameBlur}
         />
-      {:else if value && groups[value] && !isLinkMode}
+      {:else if value && groups[value]}
         <span
           class="rename-area cursor-text"
           role="button"
@@ -160,9 +162,9 @@
           on:mouseenter={() => renameHover = true}
           on:mouseleave={() => renameHover = false}
           on:mousedown|preventDefault
-          on:mousedown|stopPropagation={handleRenameAreaClick}
-          on:keydown|stopPropagation={handleRenameAreaKeydown}
-          title="Click to rename group"
+          on:mousedown|stopPropagation={locked ? undefined : handleRenameAreaClick}
+          on:keydown|stopPropagation={locked ? undefined : handleRenameAreaKeydown}
+          title={locked ? '' : 'Click to rename group'}
         >
           <span class="truncate">{value}</span>
         </span>
@@ -171,7 +173,7 @@
       {/if}
     </span>
     <div class="flex items-center">
-      {#if value && !isRenaming && !isLinkMode}
+      {#if value && !isRenaming && !locked}
         <span
           role="button"
           tabindex="0"

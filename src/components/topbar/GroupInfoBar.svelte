@@ -107,6 +107,7 @@
     disabled={Object.keys(cellGroups).length === 0 || $isLinkMode}
     groups={cellGroups}
     isLinkMode={$isLinkMode}
+    locked={$isLinkMode && $selectedGroup}
     on:rename={handleRename}
     on:select={handleSelect}
     on:deselect={handleDeselect}

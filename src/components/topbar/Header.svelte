@@ -109,6 +109,9 @@
       const selected = $selectedCells;
       if (selected.size < 2) return false;
 
+      // If we have a selected group, we can always link (adding cells to the group)
+      if ($selectedGroup) return true;
+
       let existingGroup = null;
       let hasUnlinkedCell = false;
       let hasEmptyCell = false;
@@ -153,7 +156,7 @@
       }
 
       // If we're in group mode, select all cells in the group and enter link mode
-      if ($selectedGroup) {
+      if ($selectedGroup && !$isLinkMode) {
         const groupCells = new Set();
         const allStores = [
           { store: leftTableStore, data: $leftTableStore },
@@ -183,6 +186,46 @@
           return;
         }
 
+        // If we have a selected group, add all selected cells to that group
+        if ($selectedGroup) {
+          // Get the group color from the selected group
+          let groupColor = null;
+          const allStores = [
+            { data: $leftTableStore },
+            { data: $middleTableStore },
+            { data: $mainTableStore }
+          ];
+          allStores.forEach(({ data }) => {
+            Object.values(data).forEach(cell => {
+              if (cell.groupName === $selectedGroup) {
+                groupColor = cell.groupColor;
+              }
+            });
+          });
+          
+          // Add all selected cells to the selected group
+          $selectedCells.forEach(cellKey => {
+            const [fridge] = cellKey.split('-');
+            const store = fridge === 'left' ? leftTableStore : 
+                         fridge === 'middle' ? middleTableStore : 
+                         mainTableStore;
+            const currentCell = store.get(cellKey) || {};
+            store.updateCell(cellKey, {
+              ...currentCell,
+              linked: true,
+              groupName: $selectedGroup,
+              groupColor,
+              state: CELL_STATES.REGULAR
+            });
+          });
+          selectedCells.set(new Set());
+          isLinkMode.set(false);
+          isGroupMode.set(false);
+          selectedGroup.set(null);
+          return;
+        }
+
+        // Handle regular link mode (no group selected)
         let existingGroup = null;
         let existingGroupColor = null;
         $selectedCells.forEach(cellKey => {
