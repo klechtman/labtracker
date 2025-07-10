@@ -59,9 +59,9 @@
       <Header title="Lab Tool" />
     </div>
     <FloatingDataBar />
-    <div class="pt-16 pb-7 px-9">
+    <div class="pt-16 pb-7 px-9 flex flex-col" style="flex: 1 1 0%">  <!-- Make this a flex column container -->
       <div
-        class="grid tables-row w-full min-w-0 {$isSmallScreen ? 'gap-y-12' : ''}"
+        class="grid tables-row w-full min-w-0 {$isSmallScreen ? 'gap-y-12' : ''} { !$isSmallScreen ? 'flex-1' : '' }"
         style={`
           display: grid;
           min-width: ${$isSmallScreen ? Math.max(400, tableConfigs.left.columns * 60 + tableConfigs.middle.columns * 60 + 100) + 'px' : minGridWidth + 'px'};
@@ -76,13 +76,14 @@
       >
         {#if $isSmallScreen}
           <!-- Row numbers for the top row (left and middle tables) -->
-          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1;" />
+          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1;" isDesktop={false} />
           <div class="flex flex-col w-full min-w-0" style="grid-column: 3; min-width: {tableConfigs.left.columns * 60}px;">
             <Table
               rows={tableConfigs.left.rows}
               columns={tableConfigs.left.columns}
               fridge="left"
               tableName={tableConfigs.left.name}
+              isDesktop={false}
             />
           </div>
           <div class="flex flex-col w-full min-w-0" style="grid-column: 5; min-width: {tableConfigs.middle.columns * 60}px;">
@@ -91,43 +92,48 @@
               columns={tableConfigs.middle.columns}
               fridge="middle"
               tableName={tableConfigs.middle.name}
+              isDesktop={false}
             />
           </div>
           <!-- Row numbers for the bottom row (main table) -->
-          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1; grid-row: 2;" />
+          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1; grid-row: 2;" isDesktop={false} />
           <div class="flex flex-col w-full min-w-0" style="grid-column: 3 / 6; grid-row: 2; min-width: {tableConfigs.main.columns * 60}px;">
             <Table
               rows={tableConfigs.main.rows}
               columns={tableConfigs.main.columns}
               fridge="main"
               tableName={tableConfigs.main.name}
+              isDesktop={false}
             />
           </div>
         {:else}
           <!-- Row numbers for the desktop layout -->
-          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1;" />
-          <div class="flex flex-col w-full min-w-0" style="grid-column: 3; min-width: {tableConfigs.left.columns * 60}px;">
+          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1;" isDesktop={true} />
+          <div class="flex flex-col w-full min-w-0 h-full" style="grid-column: 3; min-width: {tableConfigs.left.columns * 60}px;">
             <Table
               rows={tableConfigs.left.rows}
               columns={tableConfigs.left.columns}
               fridge="left"
               tableName={tableConfigs.left.name}
+              isDesktop={true}
             />
           </div>
-          <div class="flex flex-col w-full min-w-0" style="grid-column: 5; min-width: {tableConfigs.middle.columns * 60}px;">
+          <div class="flex flex-col w-full min-w-0 h-full" style="grid-column: 5; min-width: {tableConfigs.middle.columns * 60}px;">
             <Table
               rows={tableConfigs.middle.rows}
               columns={tableConfigs.middle.columns}
               fridge="middle"
               tableName={tableConfigs.middle.name}
+              isDesktop={true}
             />
           </div>
-          <div class="flex flex-col w-full min-w-0" style="grid-column: 7; min-width: {tableConfigs.main.columns * 60}px;">
+          <div class="flex flex-col w-full min-w-0 h-full" style="grid-column: 7; min-width: {tableConfigs.main.columns * 60}px;">
             <Table
               rows={tableConfigs.main.rows}
               columns={tableConfigs.main.columns}
               fridge="main"
               tableName={tableConfigs.main.name}
+              isDesktop={true}
             />
           </div>
         {/if}

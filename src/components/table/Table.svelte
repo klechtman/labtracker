@@ -16,6 +16,7 @@
   export let fridge = 'main';
   export let tableName = '';
   export let rowNumbersOnly = false;
+  export let isDesktop = true; // Add this prop to control layout from parent
 
   let store;
   $: store = fridge === 'left' ? leftTableStore :
@@ -55,9 +56,9 @@
   }
 </script>
 
-<div class="flex flex-col justify-end h-full min-w-920" role="presentation" on:click={handleTableClick}>
+<div class="flex flex-col justify-end {isDesktop ? 'h-full' : ''}" role="presentation" on:click={handleTableClick}>
   {#if rowNumbersOnly}
-    <div class="grid flex-grow w-full gap-px" style="grid-template-rows: repeat({maxRows}, 1fr); grid-template-columns: 1fr; margin-left: 0;">
+    <div class="grid flex-grow w-full gap-px {isDesktop ? 'h-full' : ''}" style="grid-template-rows: repeat({maxRows}, 1fr); grid-template-columns: 1fr; margin-left: 0;">
       {#each Array.from({ length: maxRows }, (_, i) => maxRows - i) as n}
         <RowNumber number={n} />
       {/each}
@@ -67,7 +68,7 @@
     </div>
     <div class="mt-2 flex flex-col min-h-[28px]"></div>
   {:else}
-    <div class="grid flex-grow w-full gap-px relative min-w-0" data-columns={columns} style="grid-template-rows: repeat({maxRows}, 1fr); grid-template-columns: repeat({columns}, minmax(60px, 1fr)); margin-left: 0; min-width: {columns * 60}px;">
+    <div class="grid flex-grow w-full gap-px relative min-w-0 {isDesktop ? 'h-full' : ''}" data-columns={columns} style="grid-template-rows: repeat({maxRows}, 1fr); grid-template-columns: repeat({columns}, minmax(60px, 1fr)); margin-left: 0; min-width: {columns * 60}px;">
       {#each Array.from({ length: maxRows }, (_, row) => maxRows - row - 1) as row}
         {#each colArr as col}
           {#if (!Array.isArray(rows) && row < rows) || (Array.isArray(rows) && row < rows[col])}
