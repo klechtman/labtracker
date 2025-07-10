@@ -87,12 +87,11 @@ export function getGroupColorHex(colorName) {
 
 export function getCellStyle({ state, linked, groupHover, groupColor, bgColor, isSelected, isDisabled, isSelectedGroup, isEditing, outFridge }) {
   let style = '';
-  const groupColorHex = getGroupColorHex(groupColor);
   
-  // Only handle CSS custom properties for dynamic colors
-  if (groupColorHex && linked && !isEditing) {
+  // groupColor is already a hex value, no need to convert
+  if (groupColor && linked && !isEditing) {
     // Set CSS custom property for group color
-    style += `--group-color: ${bgColor};`;
+    style += `--group-color: ${groupColor};`;
   }
   
   // Disabled state

@@ -7,10 +7,7 @@ import { groupColorsHex } from '../../constants';
 import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup, selectedCellData, isGroupMode, groupOrderStore } from '../../stores/tableStore';
 import { getStoreByCellKey } from '../../utils/cellUtils';
 import { CELL_STATES } from '../../constants';
-import { createEventDispatcher } from 'svelte';
 import InputField from '../common/InputField.svelte';
-
-const dispatch = createEventDispatcher();
 
 let showLinkGroupModal = false;
 let newGroupName = '';
@@ -217,7 +214,9 @@ function handleModalAccept() {
     alert('A group with this name already exists. Please choose a different name.');
     return;
   }
-  const groupColor = previewGroupColor;
+  // Get color from current index, then increment for next time
+  const currentIndex = $groupOrderStore.nextColorIndex;
+  const groupColor = groupColorsHex[currentIndex % groupColorsHex.length];
   groupOrderStore.incrementColorIndex();
   groupOrderStore.incrementGroupNumber();
   // Log after incrementing
@@ -272,7 +271,7 @@ function getSelectedPlateNames() {
 }
 
 $: if (showLinkGroupModal) {
-  previewGroupColor = groupColorsHex[$groupOrderStore.nextColorIndex];
+  previewGroupColor = groupColorsHex[$groupOrderStore.nextColorIndex % groupColorsHex.length];
 }
 </script>
 

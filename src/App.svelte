@@ -1,7 +1,7 @@
 <script>
   import Cell from './components/table/Cell.svelte';
   import Table from './components/table/Table.svelte';
-  import { selectedCells, leftTableStore, middleTableStore, mainTableStore, getCellGroups, isLinkMode, selectedGroup, groupOrderStore } from './stores/tableStore';
+  import { selectedCells, leftTableStore, middleTableStore, mainTableStore, getCellGroups, isLinkMode, selectedGroup, isGroupMode, groupOrderStore } from './stores/tableStore';
   import { isMobileMenuOpen, isSmallScreen } from './stores/mobileMenuStore';
   import { CELL_STATES } from './constants';
   import Header from './components/topbar/Header.svelte';
@@ -38,7 +38,8 @@
     if (event.target.closest('.cell') || event.target.closest('[data-action-area]')) return;
     if (!$isLinkMode) {
       selectedCells.set(new Set());
-      if ($selectedGroup) selectedGroup.set(null);
+      // Don't clear selected group when in group mode or link mode
+      if ($selectedGroup && !$isGroupMode && !$isLinkMode) selectedGroup.set(null);
     }
   }
 
