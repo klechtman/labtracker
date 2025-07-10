@@ -55,7 +55,7 @@
   }
 </script>
 
-<div class="flex flex-col justify-end h-full" role="presentation" on:click={handleTableClick}>
+<div class="flex flex-col justify-end h-full min-w-920" role="presentation" on:click={handleTableClick}>
   {#if rowNumbersOnly}
     <div class="grid flex-grow w-full gap-px" style="grid-template-rows: repeat({maxRows}, 1fr); grid-template-columns: 1fr; margin-left: 0;">
       {#each Array.from({ length: maxRows }, (_, i) => maxRows - i) as n}
