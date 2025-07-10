@@ -15,6 +15,7 @@ const dispatch = createEventDispatcher();
 let showLinkGroupModal = false;
 let newGroupName = '';
 let linkingCells = [];
+let previewGroupColor = '';
 
 $: canLink = (() => {
   if ($isLinkMode) {
@@ -216,7 +217,7 @@ function handleModalAccept() {
     alert('A group with this name already exists. Please choose a different name.');
     return;
   }
-  const groupColor = groupColorsHex[$groupOrderStore.nextColorIndex];
+  const groupColor = previewGroupColor;
   groupOrderStore.incrementColorIndex();
   groupOrderStore.incrementGroupNumber();
   // Log after incrementing
@@ -271,7 +272,7 @@ function getSelectedPlateNames() {
 }
 
 $: if (showLinkGroupModal) {
-  console.log('DEBUG groupOrderStore:', $groupOrderStore);
+  previewGroupColor = groupColorsHex[$groupOrderStore.nextColorIndex];
 }
 </script>
 
@@ -325,7 +326,7 @@ $: if (showLinkGroupModal) {
             type="input"
             placeholder="Study, project, etc."
             bind:value={newGroupName}
-            iconColor={groupColorsHex[$groupOrderStore.nextColorIndex]}
+            iconColor={previewGroupColor}
             on:keydown={(e) => {
               if (e.key === 'Enter' && newGroupName.trim()) {
                 handleModalAccept();

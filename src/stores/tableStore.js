@@ -1,5 +1,5 @@
 import { writable, derived } from 'svelte/store';
-import { tableConfigs } from '../constants';
+import { tableConfigs, groupColorsHex } from '../constants';
 import { localStorage } from '../lib/localStorage';
 
 // Create stores for each table's cells with localStorage persistence
@@ -62,7 +62,7 @@ const createGroupOrderStore = () => {
     setNextColorIndex: (index) => update(data => ({ ...data, nextColorIndex: index })),
     setNextGroupNumber: (number) => update(data => ({ ...data, nextGroupNumber: number })),
     incrementColorIndex: () => update(data => { 
-      const newIndex = (data.nextColorIndex + 1) % 30;
+      const newIndex = (data.nextColorIndex + 1) % groupColorsHex.length;
       console.log('incrementColorIndex called, newIndex:', newIndex);
       return { 
         ...data, 
