@@ -39,8 +39,9 @@
   }
 
   function handleKeyDown(event) {
-    if (event.key === 'Enter') {
+    if (event.key === 'Enter' || event.key === 'Escape') {
       event.target.blur();
+      selectedCells.set(new Set());
     }
   }
 

@@ -194,6 +194,7 @@
   </div>
   {#if showDropdown}
     <div
+      data-action-area
       role="menu"
       tabindex="0"
       class="absolute left-0 mt-1 w-[200px] bg-white border border-slate-200 rounded shadow z-10 py-2 max-h-60 overflow-auto"

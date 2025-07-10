@@ -7,10 +7,7 @@
   import Header from './components/topbar/Header.svelte';
   import FloatingDataBar from './components/topbar/FloatingDataBar.svelte';
   import RowNumber from './components/table/RowNumber.svelte';
-  import Button from './components/common/Button.svelte';
-  import { groupColors, groupColorsHex } from './constants';
   import { tableConfigs } from './constants';
-  import { canLinkCells } from './logic/groupLogic';
 
   // Handle ESC and Enter keys for deselection
   function handleKeyDown(event) {
@@ -36,6 +33,15 @@
     window.addEventListener('keydown', handleKeyDown);
   }
 
+  function handleMainClick(event) {
+    // Only ignore clicks on actual cells or toolbar/action areas
+    if (event.target.closest('.cell') || event.target.closest('[data-action-area]')) return;
+    if (!$isLinkMode) {
+      selectedCells.set(new Set());
+      if ($selectedGroup) selectedGroup.set(null);
+    }
+  }
+
   // Create an array of table configs for rendering
   const tableOrder = ['left', 'middle', 'main'];
   const tableGridColumns = '5fr 2fr 10fr';
@@ -54,7 +60,9 @@
 </script>
 
 
-  <main class="bg-sky-50 p-0 flex flex-col min-h-screen" style="min-width: 600px;">
+  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+  <main class="bg-sky-50 p-0 flex flex-col min-h-screen" style="min-width: 600px;" on:click={handleMainClick}>
     <div class="sticky top-0 z-10 bg-sky-50 w-full" style={`min-width: ${$isSmallScreen ? Math.max(400, tableConfigs.left.columns * 60 + tableConfigs.middle.columns * 60 + 100) + 'px' : minGridWidth + 'px'};`}>
       <Header title="Lab Tool" />
     </div>
@@ -76,14 +84,13 @@
       >
         {#if $isSmallScreen}
           <!-- Row numbers for the top row (left and middle tables) -->
-          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1;" isDesktop={false} />
+          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1;" />
           <div class="flex flex-col w-full min-w-0" style="grid-column: 3; min-width: {tableConfigs.left.columns * 60}px;">
             <Table
               rows={tableConfigs.left.rows}
               columns={tableConfigs.left.columns}
               fridge="left"
               tableName={tableConfigs.left.name}
-              isDesktop={false}
             />
           </div>
           <div class="flex flex-col w-full min-w-0" style="grid-column: 5; min-width: {tableConfigs.middle.columns * 60}px;">
@@ -92,30 +99,27 @@
               columns={tableConfigs.middle.columns}
               fridge="middle"
               tableName={tableConfigs.middle.name}
-              isDesktop={false}
             />
           </div>
           <!-- Row numbers for the bottom row (main table) -->
-          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1; grid-row: 2;" isDesktop={false} />
+          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1; grid-row: 2;" />
           <div class="flex flex-col w-full min-w-0" style="grid-column: 3 / 6; grid-row: 2; min-width: {tableConfigs.main.columns * 60}px;">
             <Table
               rows={tableConfigs.main.rows}
               columns={tableConfigs.main.columns}
               fridge="main"
               tableName={tableConfigs.main.name}
-              isDesktop={false}
             />
           </div>
         {:else}
           <!-- Row numbers for the desktop layout -->
-          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1;" isDesktop={true} />
+          <Table rowNumbersOnly={true} rows={maxRows} maxRows={maxRows} tableName="" style="grid-column: 1;" />
           <div class="flex flex-col w-full min-w-0 h-full" style="grid-column: 3; min-width: {tableConfigs.left.columns * 60}px;">
             <Table
               rows={tableConfigs.left.rows}
               columns={tableConfigs.left.columns}
               fridge="left"
               tableName={tableConfigs.left.name}
-              isDesktop={true}
             />
           </div>
           <div class="flex flex-col w-full min-w-0 h-full" style="grid-column: 5; min-width: {tableConfigs.middle.columns * 60}px;">
@@ -124,7 +128,6 @@
               columns={tableConfigs.middle.columns}
               fridge="middle"
               tableName={tableConfigs.middle.name}
-              isDesktop={true}
             />
           </div>
           <div class="flex flex-col w-full min-w-0 h-full" style="grid-column: 7; min-width: {tableConfigs.main.columns * 60}px;">
@@ -133,7 +136,6 @@
               columns={tableConfigs.main.columns}
               fridge="main"
               tableName={tableConfigs.main.name}
-              isDesktop={true}
             />
           </div>
         {/if}

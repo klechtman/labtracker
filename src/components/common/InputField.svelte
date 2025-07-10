@@ -78,6 +78,7 @@
       on:blur={handleBlur}
       on:mouseenter={handleMouseEnter}
       on:mouseleave={handleMouseLeave}
+      on:click|stopPropagation
     />
   {:else if type === 'button'}
     <button

@@ -379,7 +379,7 @@
   
   <header class={cn(
     "h-12 bg-white shadow-sm sticky top-0 z-10"
-  )}>
+  )} data-action-area>
     <div class={cn(
       "h-full flex items-center justify-between px-9 gap-4"
     )}>

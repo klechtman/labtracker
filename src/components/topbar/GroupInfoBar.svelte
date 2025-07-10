@@ -94,7 +94,7 @@
   }
 </script>
 
-<div class="flex items-center gap-2">
+<div data-action-area class="flex items-center gap-2">
   {#if !mobile}
     <span class="font-title text-sky-800 select-none inline-block">
       Groups:
@@ -104,10 +104,8 @@
     value={$selectedGroup || ''}
     placeholder="No group selected"
     iconColor={$selectedGroup ? cellGroups[$selectedGroup]?.color : '#cbd5e1'}
-    disabled={Object.keys(cellGroups).length === 0 || $isLinkMode}
+    disabled={Object.keys(cellGroups).length === 0}
     groups={cellGroups}
-    isLinkMode={$isLinkMode}
-    locked={$isLinkMode && $selectedGroup}
     on:rename={handleRename}
     on:select={handleSelect}
     on:deselect={handleDeselect}

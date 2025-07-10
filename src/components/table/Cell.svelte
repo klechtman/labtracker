@@ -158,20 +158,21 @@
   }
 
   function handleKeyDown(event) {
-    if (event.key === 'Enter') {
-      if (isEditing) {
-        isEditing = false;
-      } else {
-        handleClick();
-      }
-    } else if (event.key === 'Escape' && isEditing) {
+    if ((event.key === 'Enter' || event.key === 'Escape') && isEditing) {
       isEditing = false;
+      // No need to reset cell value for Enter, only for Escape, but for simplicity, keep the same logic for both
       const store = getStoreByCellKey(cellKey);
       const currentCell = store.get(cellKey) || {};
       store.updateCell(cellKey, {
         ...currentCell,
-        text: text, // Reset to original text
+        text: text, // Reset to original text (harmless for Enter)
         state: text.trim() ? CELL_STATES.REGULAR : CELL_STATES.EMPTY
+      });
+      // Deselect the cell
+      selectedCells.update(set => {
+        const newSet = new Set(set);
+        newSet.delete(cellKey);
+        return newSet;
       });
     } else if (event.key === ' ' && !isEditing) {
       handleClick();
@@ -282,6 +283,7 @@
       on:input={handleInput}
       on:keydown={handleKeyDown}
       on:blur={handleBlur}
+      on:click|stopPropagation
     />
   {:else if (state === CELL_STATES.EMPTY || (state === CELL_STATES.HOVER && text === '')) && !$selectedCells.has(cellKey)}
     <span class="w-full overflow-hidden text-ellipsis whitespace-nowrap leading-[var(--cell-height)] text-center">---</span>
