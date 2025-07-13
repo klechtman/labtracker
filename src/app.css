@@ -40,4 +40,24 @@
   body {
     @apply font-sans text-base;
   }
+
+  /* Custom tooltip styles */
+  .custom-tooltip {
+    position: absolute;
+    background: #1e293b;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    white-space: pre-line;
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transition: opacity 0.1s ease-in-out;
+  }
+
+  .custom-tooltip.show {
+    opacity: 1;
+  }
 } 

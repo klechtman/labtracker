@@ -19,6 +19,12 @@ $: canLink = (() => {
     return $selectedCellData && $selectedCellData.text && $selectedCellData.text.trim();
   }
   if ($selectedGroup) return true;
+  
+  // If a cell is selected and it's linked, disable the button
+  if ($selectedCellData && $selectedCellData.linked) {
+    return false;
+  }
+  
   let cellsWithContent = 0;
   const allStores = [
     { data: $leftTableStore },
@@ -296,7 +302,7 @@ $: if (showLinkGroupModal) {
     on:click={handleLinkCells}
     disabled={!canLink || ($isLinkMode && !canLinkSelectedCells)}
   >
-    {$isLinkMode ? 'Group' : 'Create Group'}
+    {$isLinkMode ? 'Group' : ($isGroupMode ? 'Add to Group' : 'Create Group')}
   </Button>
 
   {#if showLinkGroupModal}

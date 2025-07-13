@@ -63,7 +63,7 @@
   <!-- Icon/Color Square -->
   <span
     class="w-5 h-5 rounded border border-slate-300 flex-shrink-0"
-    style="background-color: {iconColor};"
+    style="background-color: {iconColor === '#cbd5e1' ? 'transparent' : iconColor};"
   ></span>
 
   {#if type === 'input'}

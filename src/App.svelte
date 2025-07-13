@@ -63,8 +63,8 @@
 
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-  <main class="bg-sky-50 p-0 flex flex-col min-h-screen" style="min-width: 600px;" on:click={handleMainClick}>
-    <div class="sticky top-0 z-10 bg-sky-50 w-full" style={`min-width: ${$isSmallScreen ? Math.max(400, tableConfigs.left.columns * 60 + tableConfigs.middle.columns * 60 + 100) + 'px' : minGridWidth + 'px'};`}>
+  <main class="bg-sky-50 bg-opacity-50 p-0 flex flex-col min-h-screen" style="min-width: 600px;" on:click={handleMainClick}>
+    <div class="sticky top-0 z-10 w-full" style={`min-width: ${$isSmallScreen ? Math.max(400, tableConfigs.left.columns * 60 + tableConfigs.middle.columns * 60 + 100) + 'px' : minGridWidth + 'px'};`}>
       <Header title="Lab Tool" />
     </div>
     <FloatingDataBar />

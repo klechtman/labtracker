@@ -103,8 +103,8 @@
   <GroupInput
     value={$selectedGroup || ''}
     placeholder="No group selected"
-    iconColor={$selectedGroup ? cellGroups[$selectedGroup]?.color : '#cbd5e1'}
-    disabled={Object.keys(cellGroups).length === 0}
+    disabled={Object.keys(cellGroups).length === 0 || $isLinkMode}
+    isLinkMode={$isLinkMode}
     groups={cellGroups}
     on:rename={handleRename}
     on:select={handleSelect}

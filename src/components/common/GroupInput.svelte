@@ -4,6 +4,7 @@
   import { INPUT_STYLES } from '../../constants/inputStyles';
   import { GROUP_COLOR_HEX } from '../../constants';
   import { clickOutside } from '../../lib/clickOutside';
+  import Tooltip from './Tooltip.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -13,7 +14,6 @@
   export let groups = {};
   export let isLinkMode = false;
   export let extraClasses = '';
-  export let iconColor = '#cbd5e1';
   export let locked = false;
 
   let showDropdown = false;
@@ -22,7 +22,6 @@
   let renameInput;
   let renameHover = false;
   let xHover = false;
-  let justClosed = false;
 
   function getGroupColor(c) {
     if (!c) return '#cbd5e1';
@@ -35,12 +34,9 @@
   }
   function closeDropdown() { 
     showDropdown = false; 
-    justClosed = true;
-    setTimeout(() => { justClosed = false; }, 0);
   }
   function toggleDropdown() {
     if (Object.keys(groups).length === 0 || isLinkMode || isRenaming || locked) return;
-    if (justClosed) return;
     showDropdown = !showDropdown;
   }
 
@@ -125,7 +121,11 @@
       ...(
         isRenaming
           ? []
-          : INPUT_STYLES.default.filter(cls => cls !== 'hover:bg-sky-100' || !xHover)
+          : (
+              (!value || !groups[value])
+                ? INPUT_STYLES.button // gray hover for 'no group selected'
+                : INPUT_STYLES.default.filter(cls => cls !== 'hover:bg-sky-100' || !xHover)
+            )
       ),
       isRenaming ? INPUT_STYLES.focus.find(cls => cls.startsWith('bg-')) : '',
       isRenaming ? INPUT_STYLES.focus.filter(cls => !cls.startsWith('bg-')).join(' ') : '',
@@ -142,7 +142,7 @@
   >
     <span
       class="w-5 h-5 rounded border border-slate-300 flex-shrink-0"
-      style="background-color: {value ? getGroupColor(groups[value]?.color) : iconColor};"
+      style="background-color: {value ? getGroupColor(groups[value]?.color) : 'transparent'};"
     ></span>
     <span class="flex-1 min-w-0 text-left">
       {#if isRenaming}
@@ -155,37 +155,39 @@
           on:blur={handleRenameBlur}
         />
       {:else if value && groups[value]}
-        <span
-          class="rename-area cursor-text"
-          role="button"
-          tabindex="-1"
-          on:mouseenter={() => renameHover = true}
-          on:mouseleave={() => renameHover = false}
-          on:mousedown|preventDefault
-          on:mousedown|stopPropagation={locked ? undefined : handleRenameAreaClick}
-          on:keydown|stopPropagation={locked ? undefined : handleRenameAreaKeydown}
-          title={locked ? '' : 'Click to rename group'}
-        >
-          <span class="truncate">{value}</span>
-        </span>
+        <Tooltip text={locked ? '' : 'Click to rename group'}>
+          <span
+            class="rename-area cursor-text"
+            role="button"
+            tabindex="-1"
+            on:mouseenter={() => renameHover = true}
+            on:mouseleave={() => renameHover = false}
+            on:mousedown|preventDefault
+            on:mousedown|stopPropagation={locked ? undefined : handleRenameAreaClick}
+            on:keydown|stopPropagation={locked ? undefined : handleRenameAreaKeydown}
+          >
+            <span class="truncate">{value}</span>
+          </span>
+        </Tooltip>
       {:else}
-        <span class="text-slate-500 truncate">{placeholder}</span>
+        <span class="text-slate-900 truncate">{placeholder}</span>
       {/if}
     </span>
     <div class="flex items-center">
-      {#if value && !isRenaming && !locked}
-        <span
-          role="button"
-          tabindex="0"
-          class="p-1 rounded hover:bg-pink-50 group"
-          on:mouseenter={() => xHover = true}
-          on:mouseleave={() => xHover = false}
-          on:click|stopPropagation={handleDeselect}
-          on:keydown|stopPropagation={(e) => { if(e.key === ' ' || e.key === 'Enter') handleDeselect(e) }}
-          title="Deselect group"
-        >
-          <X className="w-4 h-4 text-slate-600 group-hover:text-pink-600"/>
-        </span>
+      {#if value && !isRenaming && !locked && !isLinkMode}
+        <Tooltip text="Deselect group">
+          <span
+            role="button"
+            tabindex="0"
+            class="p-1 rounded hover:bg-pink-50 group"
+            on:mouseenter={() => xHover = true}
+            on:mouseleave={() => xHover = false}
+            on:click|stopPropagation={handleDeselect}
+            on:keydown|stopPropagation={(e) => { if(e.key === ' ' || e.key === 'Enter') handleDeselect(e) }}
+          >
+            <X className="w-4 h-4 text-slate-600 group-hover:text-pink-600"/>
+          </span>
+        </Tooltip>
       {/if}
       <svg class="w-4 h-4 ml-1 flex-shrink-0 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
@@ -211,7 +213,7 @@
           on:click={() => selectGroup(groupName)}
           on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && selectGroup(groupName)}
         >
-          <span class="w-5 h-5 rounded border border-slate-300 flex-shrink-0" style="background-color: {getGroupColor(group.color)}"></span>
+          <span class="w-5 h-5 rounded border border-slate-300 flex-shrink-0" style="background-color: {getGroupColor(group.color) || 'transparent'}"></span>
           <span class="truncate">{groupName}</span>
         </div>
       {/each}

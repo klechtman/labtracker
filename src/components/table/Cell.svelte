@@ -4,7 +4,9 @@
   import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup, isGroupMode, isAnyCellEditing } from '../../stores/tableStore';
   import { hoveredGroup } from '../../stores/hoverStore';
   import { cn } from '../../lib/utils';
-  import { updateCellName, getStoreByCellKey, getCellClass, getCellStyle } from '../../utils/cellUtils';
+  import { updateCellName, getStoreByCellKey, getCellClass, getCellStyle, parseCellKey } from '../../utils/cellUtils';
+  import { getTriangleColor, getTriangleClassAndStyle } from '../../constants/cellStyles';
+  import Tooltip from '../common/Tooltip.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -86,13 +88,15 @@
   $: groupHover = linked && $hoveredGroup === groupName;
 
   // Get cell class and style using utility functions
+  $: isDisabled = ($isLinkMode && !text.trim() && !linked) || ($isGroupMode && linked && groupName !== $selectedGroup) || ($isGroupMode && !linked) || ($isLinkMode && linked && (!$selectedGroup || groupName !== $selectedGroup));
+  
   $: cellClass = getCellClass({ 
     state, 
     linked, 
     outFridge, 
     groupHover, 
     isSelected: $selectedCells.has(cellKey),
-    isDisabled: ($isLinkMode && !text.trim() && !linked) || ($isGroupMode && linked && groupName !== $selectedGroup) || ($isGroupMode && !linked) || ($isLinkMode && linked && (!$selectedGroup || groupName !== $selectedGroup)),
+    isDisabled,
     isSelectedGroup,
     isEditing
   });
@@ -103,11 +107,51 @@
     groupColor, 
     bgColor, 
     isSelected: $selectedCells.has(cellKey),
-    isDisabled: ($isLinkMode && !text.trim() && !linked) || ($isGroupMode && linked && groupName !== $selectedGroup) || ($isGroupMode && !linked) || ($isLinkMode && linked && (!$selectedGroup || groupName !== $selectedGroup)),
+    isDisabled,
     isSelectedGroup,
     isEditing,
     outFridge
   });
+
+  $: triangleResult = getTriangleClassAndStyle({
+    isEditing,
+    isHovered: state === CELL_STATES.HOVER,
+    isSelected: $selectedCells.has(cellKey),
+    groupHover,
+    isSelectedGroup,
+    isDisabled,
+    groupColor
+  });
+  $: triangleClass = triangleResult.class;
+  $: triangleStyle = triangleResult.style;
+
+  // Function to get full cell name for tooltip
+  function getFullCellName() {
+    if (!cellKey) return '';
+    const { fridge, row, col } = parseCellKey(cellKey);
+    let tableTitle = '';
+    if (fridge === 'left') tableTitle = 'Cytomat5';
+    else if (fridge === 'middle') tableTitle = 'Cytomat2';
+    else tableTitle = 'Cytomat10';
+    return `${tableTitle} Shelf ${row + 1} - ${col + 1}`;
+  }
+
+  // Function to get tooltip text
+  function getTooltipText() {
+    if (isDisabled) return '';
+    
+    let tooltip = getFullCellName();
+    if (text.trim()) {
+      tooltip += `\n${text}`;
+    }
+    if (groupName) {
+      tooltip += `\n${groupName}`;
+    }
+    return tooltip;
+  }
+
+  // Computed tooltip text
+  $: tooltipText = getTooltipText();
 
   function setState(newState) {
     const store = getStoreByCellKey(cellKey);
@@ -248,31 +292,40 @@
   }
 </script>
 
-<div
-  tabindex="0"
-  role="button"
-  class={cellClass}
-  data-cell-key={cellKey}
-  style={`min-height: var(--cell-min-height, 32px); max-height: var(--cell-max-height, 48px); ${cellStyle}`}
-  on:mouseover={!isGroupSelectionMode ? handleMouseEnter : undefined}
-  on:mouseout={!isGroupSelectionMode ? handleMouseLeave : undefined}
-  on:mousedown={!isGroupSelectionMode ? handleMouseDown : undefined}
-  on:click={!isGroupSelectionMode ? handleClick : undefined}
-  on:keydown={!isGroupSelectionMode ? handleKeyDown : undefined}
-  on:focus={!isGroupSelectionMode ? handleMouseEnter : undefined}
-  on:blur={!isGroupSelectionMode ? handleBlur : undefined}
-  on:mouseenter={!isGroupSelectionMode ? () => setHoveredCol(col) : undefined}
-  on:mouseleave={!isGroupSelectionMode ? () => setHoveredCol(null) : undefined}
-  style:cursor={isGroupSelectionMode ? 'not-allowed' : undefined}
+<Tooltip 
+  text={tooltipText}
+  disabled={isDisabled}
 >
+  <div
+    tabindex="0"
+    role="button"
+    class={cellClass}
+    data-cell-key={cellKey}
+    style={`min-height: var(--cell-min-height, 32px); max-height: var(--cell-max-height, 48px); ${cellStyle}`}
+    on:mouseover={!isGroupSelectionMode ? handleMouseEnter : undefined}
+    on:mouseout={!isGroupSelectionMode ? handleMouseLeave : undefined}
+    on:mousedown={!isGroupSelectionMode ? handleMouseDown : undefined}
+    on:click={!isGroupSelectionMode ? handleClick : undefined}
+    on:keydown={!isGroupSelectionMode ? handleKeyDown : undefined}
+    on:focus={!isGroupSelectionMode ? handleMouseEnter : undefined}
+    on:blur={!isGroupSelectionMode ? handleBlur : undefined}
+    on:mouseenter={!isGroupSelectionMode ? () => setHoveredCol(col) : undefined}
+    on:mouseleave={!isGroupSelectionMode ? () => setHoveredCol(null) : undefined}
+    style:cursor={isGroupSelectionMode ? 'not-allowed' : undefined}
+  >
   {#if isTopCell && hoveredCol.value === col}
     <div class={cn(
       "absolute -top-8 left-0 w-full text-white py-[2px] rounded-none text-[0.9em] font-bold pointer-events-none z-20 box-border flex justify-center items-center",
       "bg-sky-800"
     )} style="background: var(--color-sky-800, #0369a1);">{col + 1}</div>
   {/if}
+  
+
   {#if linked}
-    <div class="absolute top-0 right-0 w-0 h-0 z-2" style="border-top: 1rem solid {isEditing ? '#0284c7' : (state === CELL_STATES.HOVER || $selectedCells.has(cellKey) || groupHover || isSelectedGroup) ? '#075985' : groupColor}; border-left: 1rem solid transparent;"></div>
+    <div
+      class="absolute top-0 right-0 w-0 h-0 z-2 border-t-[16px] border-l-[16px] border-l-transparent {triangleClass}"
+      style={triangleStyle}
+    ></div>
   {/if}
   {#if isEditing}
     <input
@@ -290,4 +343,5 @@
   {:else if state !== CELL_STATES.EMPTY && state !== 'group-highlight' && !(state === CELL_STATES.HOVER && text === '')}
     <span class="w-full overflow-hidden text-ellipsis whitespace-nowrap leading-[var(--cell-height)] text-left">{text}</span>
   {/if}
-</div>
+  </div>
+</Tooltip>

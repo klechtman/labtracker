@@ -46,12 +46,12 @@ export const groupColorsHex = Object.values(COLOR_DEFINITIONS);
 // Table configurations and group color config centralized here
 export const tableConfigs = {
   left: {
-    name: "Cytomat5",
+    name: "Cytomat5C",
     rows: 21,
     columns: 5
   },
   middle: {
-    name: "Cytomat2",
+    name: "Cytomat2C",
     rows: 7,
     columns: 2
   },

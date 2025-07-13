@@ -146,14 +146,16 @@
   $: canUnlink = $selectedCellData && $selectedCellData.linked;
 </script>
 
-<div class="grid grid-flow-col items-center gap-2">
-  <span class="font-title select-none w-[170px] min-w-[170px] inline-block">
-    {#if cellKey}
-      {getCellPosition(cellKey)}
-    {:else}
-      No cell selected
-    {/if}
-  </span>
+<div class="grid grid-flow-col items-end gap-2">
+  <div class="w-[170px] min-w-[170px] h-[34px] flex items-center relative">
+    <span class="font-title select-none block w-full">
+      {#if cellKey}
+        {getCellPosition(cellKey)}
+      {:else}
+        No cell selected
+      {/if}
+    </span>
+  </div>
   <div class="grid grid-flow-col items-center gap-2 cell-info-bar">
     <InputField
       type="input"
