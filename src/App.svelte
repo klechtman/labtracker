@@ -7,6 +7,7 @@
   import Header from './components/topbar/Header.svelte';
   import FloatingDataBar from './components/topbar/FloatingDataBar.svelte';
   import RowNumber from './components/table/RowNumber.svelte';
+  import ToastContainer from './components/common/ToastContainer.svelte';
   import { tableConfigs } from './constants';
 
   // Handle ESC and Enter keys for deselection
@@ -143,3 +144,5 @@
       </div>
     </div>
   </main>
+  
+  <ToastContainer />

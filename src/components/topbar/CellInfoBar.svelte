@@ -5,9 +5,11 @@
   import { CELL_STATES } from '../../constants';
   import Button from '../common/Button.svelte';
   import InputField from '../common/InputField.svelte';
+  import { toastStore } from '../../stores/toastStore';
   import incubator from '../icons/incubator.svelte';
   import unlink from '../icons/unlink.svelte';
   import erase from '../icons/erase.svelte';
+  import X from '../icons/X.svelte';
 
   let cellData = {};
   let cellKey = null;
@@ -60,26 +62,61 @@
     return GROUP_COLOR_HEX[color] || color;
   }
 
-  // Toggle Fridge handler
-  function handleToggleFridge() {
+  // Unlink handler
+  function handleUnlink() {
     const selected = $selectedCells;
     if (selected.size === 0) return;
     const cellKey = Array.from(selected)[0];
     const store = getStoreByCellKey(cellKey);
     const cellData = store.get(cellKey) || {};
-    const newOutFridgeState = !cellData.outFridge;
-    if (cellData.text && cellData.text.trim()) {
-      store.updateCell(cellKey, {
-        ...cellData,
-        outFridge: newOutFridgeState,
-        state: CELL_STATES.REGULAR
+    if (cellData.linked) {
+      // Store the original state for undo
+      const originalState = {
+        cellKey,
+        store,
+        linked: cellData.linked,
+        groupName: cellData.groupName,
+        groupColor: cellData.groupColor,
+        state: cellData.state
+      };
+      
+      // Show toast using centralized system
+      toastStore.add({
+        icon: unlink,
+        color: 'amber',
+        text: `Unlinked ${cellData.text || 'this cell'} from ${cellData.groupName}`,
+        undoAction: undoUnlink,
+        undoData: originalState
       });
-      selectedCells.set(new Set());
+      
+      // Perform the unlink action immediately
+      performUnlink();
     }
   }
 
-  // Unlink handler
-  function handleUnlink() {
+  function undoUnlink(originalState) {
+    const { cellKey, store, linked, groupName, groupColor, state } = originalState;
+    const currentCell = store.get(cellKey) || {};
+    
+    // Restore the original linked state
+    store.updateCell(cellKey, {
+      ...currentCell,
+      linked,
+      groupName,
+      groupColor,
+      state
+    });
+    
+    // Show confirmation toast
+    toastStore.add({
+      icon: unlink,
+      color: 'emerald',
+      text: `Restored ${currentCell.text || 'this cell'} to ${groupName}`,
+      duration: 2000
+    });
+  }
+
+  function performUnlink() {
     const selected = $selectedCells;
     if (selected.size === 0) return;
     const cellKey = Array.from(selected)[0];
@@ -122,6 +159,70 @@
       }
       selectedCells.set(new Set());
     }
+  }
+
+  // Toggle Fridge handler
+  function handleToggleFridge() {
+    const selected = $selectedCells;
+    if (selected.size === 0) return;
+    const cellKey = Array.from(selected)[0];
+    const store = getStoreByCellKey(cellKey);
+    const cellData = store.get(cellKey) || {};
+    const newOutFridgeState = !cellData.outFridge;
+    if (cellData.text && cellData.text.trim()) {
+      // Store the original state for undo
+      const originalState = {
+        cellKey,
+        store,
+        outFridge: cellData.outFridge,
+        state: cellData.state
+      };
+      
+      store.updateCell(cellKey, {
+        ...cellData,
+        outFridge: newOutFridgeState,
+        state: CELL_STATES.REGULAR
+      });
+      
+      // Show appropriate toast based on the new state
+      const toastText = newOutFridgeState 
+        ? `${cellData.text} has been taken out`
+        : `${cellData.text} has been returned`;
+      
+      toastStore.add({
+        icon: incubator,
+        color: 'purple',
+        text: toastText,
+        undoAction: undoOutFridge,
+        undoData: originalState
+      });
+      
+      selectedCells.set(new Set());
+    }
+  }
+
+  function undoOutFridge(originalState) {
+    const { cellKey, store, outFridge, state } = originalState;
+    const currentCell = store.get(cellKey) || {};
+    
+    // Restore the original outfridge state
+    store.updateCell(cellKey, {
+      ...currentCell,
+      outFridge,
+      state
+    });
+    
+    // Show confirmation toast
+    const undoText = outFridge 
+      ? `${currentCell.text} has been taken out`
+      : `${currentCell.text} has been returned`;
+    
+    toastStore.add({
+      icon: incubator,
+      color: 'purple',
+      text: undoText,
+      duration: 2000
+    });
   }
 
   // Erase handler
