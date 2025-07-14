@@ -1,6 +1,6 @@
 <script>
   import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedCellData, isAnyCellEditing } from '../../stores/tableStore';
-  import { getStoreByCellKey, parseCellKey } from '../../utils/cellUtils';
+  import { getStoreByCellKey, parseCellKey, triggerAnimation } from '../../utils/cellUtils';
   import { GROUP_COLOR_HEX } from '../../constants';
   import { CELL_STATES } from '../../constants';
   import Button from '../common/Button.svelte';
@@ -148,6 +148,8 @@
             state: CELL_STATES.REGULAR
           });
         });
+        // Trigger animation for all cells in the group
+        triggerAnimation(groupCells.map(({ key }) => key));
       } else {
         store.updateCell(cellKey, {
           ...cellData,
@@ -156,6 +158,8 @@
           groupColor: '',
           state: CELL_STATES.REGULAR
         });
+        // Trigger animation for the single cell
+        triggerAnimation([cellKey]);
       }
       selectedCells.set(new Set());
     }

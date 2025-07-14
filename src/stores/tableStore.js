@@ -61,22 +61,19 @@ const createGroupOrderStore = () => {
     subscribe,
     setNextColorIndex: (index) => update(data => ({ ...data, nextColorIndex: index })),
     setNextGroupNumber: (number) => update(data => ({ ...data, nextGroupNumber: number })),
-    incrementColorIndex: () => update(data => { 
-      const newIndex = (data.nextColorIndex + 1) % groupColorsHex.length;
-      console.log('incrementColorIndex called, newIndex:', newIndex);
-      return { 
-        ...data, 
-        nextColorIndex: newIndex
-      };
-    }),
-    incrementGroupNumber: () => update(data => { 
-      const newNumber = data.nextGroupNumber + 1;
-      console.log('incrementGroupNumber called, newNumber:', newNumber);
-      return { 
-        ...data, 
-        nextGroupNumber: newNumber 
-      };
-    }),
+    incrementColorIndex: () => {
+      update(store => {
+        const newIndex = (store.nextColorIndex + 1) % 6;
+        return { ...store, nextColorIndex: newIndex };
+      });
+    },
+    
+    incrementGroupNumber: () => {
+      update(store => {
+        const newNumber = store.nextGroupNumber + 1;
+        return { ...store, nextGroupNumber: newNumber };
+      });
+    },
     reset: () => set({ nextColorIndex: 0, nextGroupNumber: 1 }),
     set,
   };
@@ -91,6 +88,9 @@ export const isGroupMode = writable(false);
 
 // Temporary store for loading state (not persisted)
 export const loadingCells = writable(new Set());
+
+// Store for tracking cells affected by undo actions (for animation)
+export const undoAffectedCells = writable(new Set());
 
 // Svelte 5: cellGroups as a function to be used in Svelte components
 export function getCellGroups(left, middle, main) {

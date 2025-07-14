@@ -1,11 +1,13 @@
 <script>
   import X from '../icons/X.svelte';
-  import { leftTableStore, middleTableStore, mainTableStore, getCellGroups, selectedGroup, isLinkMode, isGroupMode } from '../../stores/tableStore';
+  import { leftTableStore, middleTableStore, mainTableStore, getCellGroups, selectedGroup, isLinkMode, isGroupMode, selectedCells } from '../../stores/tableStore';
   import Button from '../common/Button.svelte';
   import unlink from '../icons/unlink.svelte';
   import erase from '../icons/erase.svelte';
   import Modal from '../common/Modal.svelte';
   import GroupInput from '../common/GroupInput.svelte';
+  import { toastStore } from '../../stores/toastStore';
+  import { triggerAnimation } from '../../utils/cellUtils';
 
   // Add mobile prop to conditionally hide "Groups:" text
   export let mobile = false;
@@ -56,6 +58,8 @@
       selectedGroup.set(null);
     } else {
       selectedGroup.set(e.detail);
+      // Clear selected cells when a group is selected to deselect cells in renaming mode
+      selectedCells.set(new Set());
     }
   }
 
@@ -64,7 +68,36 @@
   }
 
   function handleGroupAction() {
+    const groupName = $selectedGroup; // Capture group name before action
+    
     if (groupActionType === 'unlink') {
+      // Capture original state for undo
+      const originalStates = [];
+      const affectedCells = [];
+      const allStores = [
+        { store: leftTableStore, data: $leftTableStore },
+        { store: middleTableStore, data: $middleTableStore },
+        { store: mainTableStore, data: $mainTableStore }
+      ];
+      
+      allStores.forEach(({ store, data }) => {
+        Object.entries(data).forEach(([key, cell]) => {
+          if (cell.groupName === groupName) {
+            originalStates.push({
+              key,
+              store,
+              linked: cell.linked,
+              groupName: cell.groupName,
+              groupColor: cell.groupColor,
+              text: cell.text,
+              outFridge: cell.outFridge,
+              state: cell.state
+            });
+            affectedCells.push(key);
+          }
+        });
+      });
+      
       import('../../logic/groupLogic').then(({ unlinkAllInGroup }) => {
         unlinkAllInGroup(
           $selectedGroup,
@@ -75,8 +108,48 @@
           selectedGroup,
           () => {}
         );
+        
+        // Trigger animation for affected cells
+        triggerAnimation(affectedCells);
+        
+        // Show toast with undo functionality
+        toastStore.add({
+          icon: unlink,
+          color: 'amber',
+          text: `Unlinked group "${groupName}"`,
+          duration: 4000,
+          undoAction: undoUnlinkGroup,
+          undoData: { originalStates, groupName }
+        });
       });
     } else if (groupActionType === 'delete') {
+      // Capture original state for undo
+      const originalStates = [];
+      const affectedCells = [];
+      const allStores = [
+        { store: leftTableStore, data: $leftTableStore },
+        { store: middleTableStore, data: $middleTableStore },
+        { store: mainTableStore, data: $mainTableStore }
+      ];
+      
+      allStores.forEach(({ store, data }) => {
+        Object.entries(data).forEach(([key, cell]) => {
+          if (cell.groupName === groupName) {
+            originalStates.push({
+              key,
+              store,
+              linked: cell.linked,
+              groupName: cell.groupName,
+              groupColor: cell.groupColor,
+              text: cell.text,
+              outFridge: cell.outFridge,
+              state: cell.state
+            });
+            affectedCells.push(key);
+          }
+        });
+      });
+      
       import('../../logic/groupLogic').then(({ deleteAllInGroup }) => {
         deleteAllInGroup(
           $selectedGroup,
@@ -87,10 +160,75 @@
           selectedGroup,
           () => {}
         );
+        
+        // Trigger animation for affected cells
+        triggerAnimation(affectedCells);
+        
+        // Show toast with undo functionality
+        toastStore.add({
+          icon: erase,
+          color: 'red',
+          text: `Deleted group "${groupName}"`,
+          duration: 4000,
+          undoAction: undoDeleteGroup,
+          undoData: { originalStates, groupName }
+        });
       });
     }
     showGroupActionModal = false;
     groupActionType = null;
+  }
+  
+  function undoUnlinkGroup(undoData) {
+    const { originalStates, groupName } = undoData;
+    
+    // Restore original states
+    originalStates.forEach(({ key, store, linked, groupName: originalGroupName, groupColor, text, outFridge, state }) => {
+      const currentCell = store.get(key) || {};
+      store.updateCell(key, {
+        ...currentCell,
+        linked,
+        groupName: originalGroupName,
+        groupColor,
+        text,
+        outFridge,
+        state
+      });
+    });
+    
+    // Show confirmation toast
+    toastStore.add({
+      icon: unlink,
+      color: 'emerald',
+      text: `Restored group "${groupName}"`,
+      duration: 2000
+    });
+  }
+  
+  function undoDeleteGroup(undoData) {
+    const { originalStates, groupName } = undoData;
+    
+    // Restore original states
+    originalStates.forEach(({ key, store, linked, groupName: originalGroupName, groupColor, text, outFridge, state }) => {
+      const currentCell = store.get(key) || {};
+      store.updateCell(key, {
+        ...currentCell,
+        linked,
+        groupName: originalGroupName,
+        groupColor,
+        text,
+        outFridge,
+        state
+      });
+    });
+    
+    // Show confirmation toast
+    toastStore.add({
+      icon: erase,
+      color: 'emerald',
+      text: `Restored group "${groupName}"`,
+      duration: 2000
+    });
   }
 </script>
 

@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher, getContext } from 'svelte';
   import { CELL_STATES, GROUP_COLOR_HEX } from '../../constants';
-  import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup, isGroupMode, isAnyCellEditing, loadingCells } from '../../stores/tableStore';
+  import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup, isGroupMode, isAnyCellEditing, loadingCells, undoAffectedCells } from '../../stores/tableStore';
   import { hoveredGroup } from '../../stores/hoverStore';
   import { cn } from '../../lib/utils';
   import { updateCellName, getStoreByCellKey, getCellClass, getCellStyle, parseCellKey } from '../../utils/cellUtils';
@@ -25,6 +25,7 @@
   export let col = null;
 
   $: isSelectedGroup = linked && $selectedGroup === groupName;
+  $: isUndoAffected = $undoAffectedCells.has(cellKey);
 
   // Make text reactive to store changes
   $: {
@@ -309,7 +310,8 @@
     role="button"
     class={cn(
       "relative w-16 h-16 border border-slate-300 flex items-center justify-center cursor-pointer select-none",
-      cellClass
+      cellClass,
+      isUndoAffected ? "undo-animation" : ""
     )}
     data-cell-key={cellKey}
     style={cellStyle}
@@ -357,3 +359,24 @@
   {/if}
   </div>
 </Tooltip>
+
+<style>
+  .undo-animation {
+    animation: undoFadeOut 2s ease-out;
+  }
+  
+  @keyframes undoFadeOut {
+    0% {
+      background-color: #e0f2fe;
+      border-color: #7dd3fc;
+      font-size: inherit;
+      line-height: inherit;
+    }
+    100% {
+      background-color: white;
+      border-color: #cbd5e1;
+      font-size: inherit;
+      line-height: inherit;
+    }
+  }
+</style>

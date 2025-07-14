@@ -1,7 +1,27 @@
 import { CELL_STATES, GROUP_COLOR_HEX } from '../constants';
 import { cn } from '../lib/utils';
-import { leftTableStore, middleTableStore, mainTableStore } from '../stores/tableStore';
+import { leftTableStore, middleTableStore, mainTableStore, undoAffectedCells } from '../stores/tableStore';
 import { CELL_BASE_CLASS, CELL_PADDING, CELL_STYLE_MAP } from '../constants/cellStyles';
+
+// Shared animation trigger function
+export function triggerAnimation(cellKeys) {
+  if (cellKeys.length > 0) {
+    undoAffectedCells.update(set => {
+      const newSet = new Set(set);
+      cellKeys.forEach(key => newSet.add(key));
+      return newSet;
+    });
+    
+    // Remove cells from animation store after 2 seconds
+    setTimeout(() => {
+      undoAffectedCells.update(set => {
+        const newSet = new Set(set);
+        cellKeys.forEach(key => newSet.delete(key));
+        return newSet;
+      });
+    }, 2000);
+  }
+}
 
 export function getCellState(state, text) {
   if (state === CELL_STATES.EMPTY) return CELL_STATES.EMPTY;

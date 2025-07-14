@@ -5,9 +5,10 @@ import addlink from '../icons/addlink.svelte';
 import X from '../icons/X.svelte';
 import { groupColorsHex } from '../../constants';
 import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup, selectedCellData, isGroupMode, groupOrderStore } from '../../stores/tableStore';
-import { getStoreByCellKey } from '../../utils/cellUtils';
+import { getStoreByCellKey, triggerAnimation } from '../../utils/cellUtils';
 import { CELL_STATES } from '../../constants';
 import InputField from '../common/InputField.svelte';
+import { toastStore } from '../../stores/toastStore';
 
 let showLinkGroupModal = false;
 let newGroupName = '';
@@ -113,6 +114,8 @@ function handleLinkCells(event) {
     
     // If we have a selected group, add all selected cells to that group
     if ($selectedGroup) {
+      const groupName = $selectedGroup; // Capture group name before clearing
+      
       // Get the group color from the selected group
       let groupColor = null;
       const allStores = [
@@ -128,7 +131,35 @@ function handleLinkCells(event) {
         });
       });
       
+      // Capture original states for undo and count cells that will be added
+      const originalStates = [];
+      let cellsAdded = 0;
+      $selectedCells.forEach(cellKey => {
+        const [fridge] = cellKey.split('-');
+        const store = fridge === 'left' ? leftTableStore : 
+                     fridge === 'middle' ? middleTableStore : 
+                     mainTableStore;
+        const currentCell = store.get(cellKey) || {};
+        
+        // Only count cells that aren't already in this group
+        if (currentCell.groupName !== $selectedGroup) {
+          cellsAdded++;
+        }
+        
+        originalStates.push({
+          key: cellKey,
+          store,
+          linked: currentCell.linked,
+          groupName: currentCell.groupName,
+          groupColor: currentCell.groupColor,
+          text: currentCell.text,
+          outFridge: currentCell.outFridge,
+          state: currentCell.state
+        });
+      });
+      
       // Add all selected cells to the selected group
+      const cellKeysToAnimate = Array.from($selectedCells);
       $selectedCells.forEach(cellKey => {
         const [fridge] = cellKey.split('-');
         const store = fridge === 'left' ? leftTableStore : 
@@ -147,6 +178,19 @@ function handleLinkCells(event) {
       isLinkMode.set(false);
       isGroupMode.set(false);
       selectedGroup.set(null);
+      
+      // Trigger animation for affected cells
+      triggerAnimation(cellKeysToAnimate);
+      
+      // Show toast with undo functionality
+      toastStore.add({
+        icon: addlink,
+        color: 'emerald',
+        text: `Added ${cellsAdded} plates to group "${groupName}"`,
+        duration: 4000,
+        undoAction: undoAddToGroup,
+        undoData: { originalStates, groupName }
+      });
       return;
     }
     
@@ -172,6 +216,28 @@ function handleLinkCells(event) {
     }
     let groupName = existingGroup;
     let groupColor = existingGroupColor;
+    
+    // Capture original states for undo
+    const originalStates = [];
+    const cellKeysToAnimate = Array.from($selectedCells);
+    $selectedCells.forEach(cellKey => {
+      const [fridge] = cellKey.split('-');
+      const store = fridge === 'left' ? leftTableStore : 
+                   fridge === 'middle' ? middleTableStore : 
+                   mainTableStore;
+      const currentCell = store.get(cellKey) || {};
+      originalStates.push({
+        key: cellKey,
+        store,
+        linked: currentCell.linked,
+        groupName: currentCell.groupName,
+        groupColor: currentCell.groupColor,
+        text: currentCell.text,
+        outFridge: currentCell.outFridge,
+        state: currentCell.state
+      });
+    });
+    
     $selectedCells.forEach(cellKey => {
       const [fridge] = cellKey.split('-');
       const store = fridge === 'left' ? leftTableStore : 
@@ -191,6 +257,19 @@ function handleLinkCells(event) {
     isGroupMode.set(false);
     selectedGroup.set(null);
     // Don't clear selected group when linking is completed - keep it selected
+    
+    // Trigger animation for affected cells
+    triggerAnimation(cellKeysToAnimate);
+    
+    // Show toast with undo functionality
+    toastStore.add({
+      icon: addlink,
+      color: 'emerald',
+      text: `Added ${$selectedCells.size} plates to group "${groupName}"`,
+      duration: 4000,
+      undoAction: undoAddToGroup,
+      undoData: { originalStates, groupName }
+    });
   } else {
     isLinkMode.update(mode => !mode);
     if (!$isLinkMode) {
@@ -220,15 +299,32 @@ function handleModalAccept() {
     alert('A group with this name already exists. Please choose a different name.');
     return;
   }
+  
+  // Capture original states for undo
+  const originalStates = [];
+  linkingCells.forEach(cellKey => {
+    const [fridge] = cellKey.split('-');
+    const store = fridge === 'left' ? leftTableStore : 
+                 fridge === 'middle' ? middleTableStore : 
+                 mainTableStore;
+    const currentCell = store.get(cellKey) || {};
+    originalStates.push({
+      key: cellKey,
+      store,
+      linked: currentCell.linked,
+      groupName: currentCell.groupName,
+      groupColor: currentCell.groupColor,
+      text: currentCell.text,
+      outFridge: currentCell.outFridge,
+      state: currentCell.state
+    });
+  });
+  
   // Get color from current index, then increment for next time
   const currentIndex = $groupOrderStore.nextColorIndex;
   const groupColor = groupColorsHex[currentIndex % groupColorsHex.length];
   groupOrderStore.incrementColorIndex();
   groupOrderStore.incrementGroupNumber();
-  // Log after incrementing
-  setTimeout(() => {
-    console.log('AFTER INCREMENT $groupOrderStore:', $groupOrderStore);
-  }, 100);
   linkingCells.forEach(cellKey => {
     const [fridge] = cellKey.split('-');
     const store = fridge === 'left' ? leftTableStore : 
@@ -249,6 +345,71 @@ function handleModalAccept() {
   selectedGroup.set(null);
   showLinkGroupModal = false;
   // Don't clear selected group when linking is completed via modal - keep it selected
+  
+  // Trigger animation for affected cells
+  triggerAnimation(linkingCells);
+  
+  // Show toast with undo functionality
+  toastStore.add({
+    icon: addlink,
+    color: 'emerald',
+    text: `Created group "${groupName}" with ${linkingCells.length} plates`,
+    duration: 4000,
+    undoAction: undoCreateGroup,
+    undoData: { originalStates, groupName, groupColor }
+  });
+}
+
+function undoCreateGroup(undoData) {
+  const { originalStates, groupName, groupColor } = undoData;
+  
+  // Restore original states
+  originalStates.forEach(({ key, store, linked, groupName: originalGroupName, groupColor: originalGroupColor, text, outFridge, state }) => {
+    const currentCell = store.get(key) || {};
+    store.updateCell(key, {
+      ...currentCell,
+      linked,
+      groupName: originalGroupName,
+      groupColor: originalGroupColor,
+      text,
+      outFridge,
+      state
+    });
+  });
+  
+  // Show confirmation toast
+  toastStore.add({
+    icon: addlink,
+    color: 'emerald',
+    text: `Undid creation of group "${groupName}"`,
+    duration: 2000
+  });
+}
+
+function undoAddToGroup(undoData) {
+  const { originalStates, groupName } = undoData;
+  
+  // Restore original states
+  originalStates.forEach(({ key, store, linked, groupName: originalGroupName, groupColor: originalGroupColor, text, outFridge, state }) => {
+    const currentCell = store.get(key) || {};
+    store.updateCell(key, {
+      ...currentCell,
+      linked,
+      groupName: originalGroupName,
+      groupColor: originalGroupColor,
+      text,
+      outFridge,
+      state
+    });
+  });
+  
+  // Show confirmation toast
+  toastStore.add({
+    icon: addlink,
+    color: 'emerald',
+    text: `Removed plates from group "${groupName}"`,
+    duration: 2000
+  });
 }
 
 function handleKeyDown(event) {

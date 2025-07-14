@@ -46,6 +46,30 @@ function createToastStore() {
       update(toasts => {
         const toast = toasts.find(t => t.id === id);
         if (toast && toast.undoAction) {
+          // Extract cell keys from undoData for animation
+          const cellKeys = extractCellKeysFromUndoData(toast.undoData);
+          
+          // Add cells to animation store
+          if (cellKeys.length > 0) {
+            import('./tableStore').then(({ undoAffectedCells }) => {
+              undoAffectedCells.update(set => {
+                const newSet = new Set(set);
+                cellKeys.forEach(key => newSet.add(key));
+                return newSet;
+              });
+              
+              // Remove cells from animation store after 2 seconds
+              setTimeout(() => {
+                undoAffectedCells.update(set => {
+                  const newSet = new Set(set);
+                  cellKeys.forEach(key => newSet.delete(key));
+                  return newSet;
+                });
+              }, 2000);
+            });
+          }
+          
+          // Execute the undo action
           toast.undoAction(toast.undoData);
         }
         return toasts.filter(t => t.id !== id);
@@ -55,6 +79,22 @@ function createToastStore() {
     // Clear all toasts
     clear: () => set([])
   };
+}
+
+// Helper function to extract cell keys from undo data
+function extractCellKeysFromUndoData(undoData) {
+  if (!undoData) return [];
+  
+  // Handle different undo data structures
+  if (undoData.originalStates) {
+    // For group operations (link, unlink, delete)
+    return undoData.originalStates.map(state => state.key);
+  } else if (undoData.cellKey) {
+    // For single cell operations
+    return [undoData.cellKey];
+  }
+  
+  return [];
 }
 
 export const toastStore = createToastStore(); 
