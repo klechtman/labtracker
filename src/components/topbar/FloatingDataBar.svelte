@@ -1,6 +1,10 @@
 <script>
   import { localStorage } from '../../lib/localStorage';
   import { populateApp } from '../../utils/populateData';
+  import { leftTableStore, middleTableStore, mainTableStore, loadingCells } from '../../stores/tableStore';
+  import { CELL_STATES } from '../../constants';
+  import { getStoreByCellKey } from '../../utils/cellUtils';
+  import { getAllRenderedCellKeys } from '../../utils/populateData';
 
   // Function to clear localStorage and reload the app
   function handleClearData() {
@@ -11,6 +15,17 @@
   // Function to populate the app with random data
   function handlePopulateData() {
     populateApp();
+  }
+
+  // Function to test loading state
+  function handleTestLoading() {
+    const allCellKeys = getAllRenderedCellKeys();
+    loadingCells.set(new Set(allCellKeys));
+  }
+
+  // Function to stop loading state
+  function handleStopLoading() {
+    loadingCells.set(new Set());
   }
 </script>
 

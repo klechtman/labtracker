@@ -89,6 +89,9 @@ export const selectedCells = writable(new Set());
 export const isLinkMode = writable(false);
 export const isGroupMode = writable(false);
 
+// Temporary store for loading state (not persisted)
+export const loadingCells = writable(new Set());
+
 // Svelte 5: cellGroups as a function to be used in Svelte components
 export function getCellGroups(left, middle, main) {
   const groups = {};

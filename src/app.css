@@ -60,4 +60,54 @@
   .custom-tooltip.show {
     opacity: 1;
   }
+
+  /* Loading animation for cells */
+  @keyframes loading-pulse {
+    0%, 100% {
+      background-color: #f8fcff;
+    }
+    50% {
+      background-color: #ffffff;
+    }
+  }
+
+  .loading-cell {
+    animation: loading-pulse 2s ease-in-out infinite;
+  }
+
+  /* Robust fade for cell content */
+  .cell-content-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .cell-loading-content,
+  .cell-loaded-content {
+    position: absolute;
+    left: 0; top: 0; width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.15s cubic-bezier(.4,0,.2,1);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .cell-loading-content {
+    justify-content: center;
+  }
+  .cell-loaded-content.left {
+    justify-content: flex-start;
+    padding-left: 0.25rem;
+  }
+  .cell-fade-in {
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 1;
+  }
+  .cell-fade-out {
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
 } 

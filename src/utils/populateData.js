@@ -132,3 +132,5 @@ export function populateApp() {
   console.log(`- ${remainingCells.length} unlinked filled cells`);
   console.log(`- ${totalCells - cellsToFill} empty cells`);
 } 
+
+export { getAllRenderedCellKeys }; 

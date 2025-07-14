@@ -17,8 +17,9 @@ export const CELL_BASE_CLASS = [
   'overflow-visible',
   'box-border',
   'border',
-  'transition-colors',
-  'duration-150',
+  'transition-all',
+  'duration-200',
+  'ease-in-out',
 ];
 
 // Padding for linked/unlinked cells
@@ -47,6 +48,7 @@ export const CELL_STYLE_MAP = {
   selectedEmpty: ['bg-white', 'border-slate-700'],
   hoverEmpty: ['hover:bg-sky-100'],
   editing: ['bg-sky-50', 'border-sky-400', 'ring-2', 'ring-sky-200'],
+  loading: ['text-slate-400', 'border-slate-300', 'loading-cell'],
 
   // Grouped cell styles (for any cell in a group)
   grouped: ['text-slate-700', 'border-slate-300', 'bg-white'],
@@ -73,9 +75,10 @@ export function getTriangleColor({
   groupHover, 
   isSelectedGroup, 
   isDisabled, 
-  groupColor 
+  groupColor,
+  isLoading
 }) {
-  // Priority order: editing > active states > disabled > default
+  // Priority order: editing > active states > disabled/loading > default
   if (isEditing) {
     return TRIANGLE_COLOR_MAP.editing;
   }
@@ -84,7 +87,7 @@ export function getTriangleColor({
     return TRIANGLE_COLOR_MAP.active;
   }
   
-  if (isDisabled) {
+  if (isDisabled || isLoading) {
     return TRIANGLE_COLOR_MAP.disabled;
   }
   
@@ -99,12 +102,13 @@ export function getTriangleClassAndStyle({
   groupHover,
   isSelectedGroup,
   isDisabled,
-  groupColor
+  groupColor,
+  isLoading
 }) {
   if (isEditing) return { class: TRIANGLE_COLOR_MAP.editing, style: '' };
   if (isHovered) return { class: TRIANGLE_COLOR_MAP.hovered, style: '' };
   if (isSelected || groupHover || isSelectedGroup) return { class: TRIANGLE_COLOR_MAP.active, style: '' };
-  if (isDisabled) return { class: TRIANGLE_COLOR_MAP.disabled, style: '' };
+  if (isDisabled || isLoading) return { class: TRIANGLE_COLOR_MAP.disabled, style: '' };
   if (groupColor) return { class: '', style: `border-top-color: ${groupColor}` };
   return { class: '', style: '' };
 }

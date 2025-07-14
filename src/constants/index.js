@@ -1,7 +1,8 @@
 export const CELL_STATES = {
   EMPTY: 'empty',
   REGULAR: 'regular',
-  HOVER: 'hover'
+  HOVER: 'hover',
+  LOADING: 'loading'
 };
 
 // Single source of truth for colors

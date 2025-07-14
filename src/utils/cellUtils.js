@@ -24,8 +24,12 @@ export function getCellClass({ state, linked, outFridge, groupHover, isSelected,
   // Padding
   classes.push(linked ? CELL_PADDING.linked : CELL_PADDING.unlinked);
 
-  // Editing state (highest priority)
-  if (isEditing) {
+  // Loading state (highest priority)
+  if (state === CELL_STATES.LOADING) {
+    classes.push(...CELL_STYLE_MAP.loading);
+  }
+  // Editing state (second highest priority)
+  else if (isEditing) {
     classes.push(...CELL_STYLE_MAP.editing);
   }
   // Disabled
@@ -36,7 +40,7 @@ export function getCellClass({ state, linked, outFridge, groupHover, isSelected,
   else if (outFridge) {
     classes.push(...CELL_STYLE_MAP.outFridge);
   }
-  // Group hover (takes precedence over everything except editing/disabled/outFridge)
+  // Group hover (takes precedence over everything except loading/editing/disabled/outFridge)
   else if (groupHover) {
     classes.push(...CELL_STYLE_MAP.groupedHover);
   }
@@ -69,8 +73,8 @@ export function getCellClass({ state, linked, outFridge, groupHover, isSelected,
     }
   }
 
-  // Selected (not empty) - only apply if not editing
-  if (isSelected && state !== CELL_STATES.EMPTY && !isEditing) {
+  // Selected (not empty) - only apply if not loading/editing
+  if (isSelected && state !== CELL_STATES.EMPTY && !isEditing && state !== CELL_STATES.LOADING) {
     if (linked) {
       classes.push(...CELL_STYLE_MAP.groupedSelected);
     } else {

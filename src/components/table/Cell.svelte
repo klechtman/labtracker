@@ -1,7 +1,7 @@
 <script>
   import { createEventDispatcher, getContext } from 'svelte';
   import { CELL_STATES, GROUP_COLOR_HEX } from '../../constants';
-  import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup, isGroupMode, isAnyCellEditing } from '../../stores/tableStore';
+  import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup, isGroupMode, isAnyCellEditing, loadingCells } from '../../stores/tableStore';
   import { hoveredGroup } from '../../stores/hoverStore';
   import { cn } from '../../lib/utils';
   import { updateCellName, getStoreByCellKey, getCellClass, getCellStyle, parseCellKey } from '../../utils/cellUtils';
@@ -48,7 +48,7 @@
   }
 
   // Start editing when cell is selected and not in link mode or group selection mode
-  $: if ($selectedCells.has(cellKey) && !$isLinkMode && !isEditing && !isSelectedGroup && !isGroupSelectionMode) {
+  $: if ($selectedCells.has(cellKey) && !$isLinkMode && !isEditing && !isGroupSelectionMode && !$loadingCells.has(cellKey)) {
     isEditing = true;
     setTimeout(() => {
       if (inputElement) {
@@ -63,7 +63,7 @@
   }
 
   // Stop editing when cell is deselected
-  $: if (!$selectedCells.has(cellKey) && isEditing) {
+  $: if ((!$selectedCells.has(cellKey) || $loadingCells.has(cellKey)) && isEditing) {
     isEditing = false;
   }
 
@@ -88,10 +88,10 @@
   $: groupHover = linked && $hoveredGroup === groupName;
 
   // Get cell class and style using utility functions
-  $: isDisabled = ($isLinkMode && !text.trim() && !linked) || ($isGroupMode && linked && groupName !== $selectedGroup) || ($isGroupMode && !linked) || ($isLinkMode && linked && (!$selectedGroup || groupName !== $selectedGroup));
+  $: isDisabled = ($isLinkMode && !text.trim() && !linked) || ($isGroupMode && linked && groupName !== $selectedGroup) || ($isGroupMode && !linked) || ($isLinkMode && linked && (!$selectedGroup || groupName !== $selectedGroup)) || $loadingCells.has(cellKey);
   
   $: cellClass = getCellClass({ 
-    state, 
+    state: $loadingCells.has(cellKey) ? CELL_STATES.LOADING : state, 
     linked, 
     outFridge, 
     groupHover, 
@@ -101,7 +101,7 @@
     isEditing
   });
   $: cellStyle = getCellStyle({ 
-    state, 
+    state: $loadingCells.has(cellKey) ? CELL_STATES.LOADING : state, 
     linked, 
     groupHover, 
     groupColor, 
@@ -120,7 +120,8 @@
     groupHover,
     isSelectedGroup,
     isDisabled,
-    groupColor
+    groupColor,
+    isLoading: $loadingCells.has(cellKey)
   });
   $: triangleClass = triangleResult.class;
   $: triangleStyle = triangleResult.style;
@@ -154,11 +155,13 @@
   $: tooltipText = getTooltipText();
 
   function setState(newState) {
+    if ($loadingCells.has(cellKey)) return;
     const store = getStoreByCellKey(cellKey);
     store.updateCell(cellKey, { state: newState });
   }
 
   function handleMouseEnter() {
+    if ($loadingCells.has(cellKey)) return;
     if (state === CELL_STATES.EMPTY) {
       setState(CELL_STATES.HOVER);
       return;
@@ -172,6 +175,7 @@
   }
 
   function handleMouseLeave() {
+    if ($loadingCells.has(cellKey)) return;
     if (state === CELL_STATES.HOVER && !text.trim()) {
       setState(CELL_STATES.EMPTY);
       return;
@@ -185,13 +189,14 @@
   }
 
   function handleMouseDown(event) {
+    if ($loadingCells.has(cellKey)) return;
     if (event.target === event.currentTarget) {
     event.preventDefault();
     }
   }
 
   function handleInput(event) {
-    if ($isLinkMode || $isGroupMode) return;
+    if ($isLinkMode || $isGroupMode || $loadingCells.has(cellKey)) return;
     const newValue = event.target.value;
     const store = getStoreByCellKey(cellKey);
     if (!store) return;
@@ -202,6 +207,7 @@
   }
 
   function handleKeyDown(event) {
+    if ($loadingCells.has(cellKey)) return;
     if ((event.key === 'Enter' || event.key === 'Escape') && isEditing) {
       isEditing = false;
       // No need to reset cell value for Enter, only for Escape, but for simplicity, keep the same logic for both
@@ -224,6 +230,7 @@
   }
 
   function handleBlur(event) {
+    if ($loadingCells.has(cellKey)) return;
     // Check if the related target is the top bar input
     const topBarInput = document.querySelector('.cell-info-bar input');
     if (event.relatedTarget === topBarInput) {
@@ -238,6 +245,7 @@
   }
 
   function handleClick(event) {
+    if ($loadingCells.has(cellKey)) return;
     // Stop event propagation to prevent the main click handler from firing
     if (event) event.stopPropagation();
     
@@ -299,19 +307,23 @@
   <div
     tabindex="0"
     role="button"
-    class={cellClass}
+    class={cn(
+      "relative w-16 h-16 border border-slate-300 flex items-center justify-center cursor-pointer select-none",
+      cellClass
+    )}
     data-cell-key={cellKey}
-    style={`min-height: var(--cell-min-height, 32px); max-height: var(--cell-max-height, 48px); ${cellStyle}`}
-    on:mouseover={!isGroupSelectionMode ? handleMouseEnter : undefined}
-    on:mouseout={!isGroupSelectionMode ? handleMouseLeave : undefined}
-    on:mousedown={!isGroupSelectionMode ? handleMouseDown : undefined}
-    on:click={!isGroupSelectionMode ? handleClick : undefined}
-    on:keydown={!isGroupSelectionMode ? handleKeyDown : undefined}
-    on:focus={!isGroupSelectionMode ? handleMouseEnter : undefined}
-    on:blur={!isGroupSelectionMode ? handleBlur : undefined}
-    on:mouseenter={!isGroupSelectionMode ? () => setHoveredCol(col) : undefined}
-    on:mouseleave={!isGroupSelectionMode ? () => setHoveredCol(null) : undefined}
-    style:cursor={isGroupSelectionMode ? 'not-allowed' : undefined}
+    style={cellStyle}
+    on:mouseover={!isGroupSelectionMode && !$loadingCells.has(cellKey) ? handleMouseEnter : undefined}
+    on:mouseout={!isGroupSelectionMode && !$loadingCells.has(cellKey) ? handleMouseLeave : undefined}
+    on:mousedown={!isGroupSelectionMode && !$loadingCells.has(cellKey) ? handleMouseDown : undefined}
+    on:click={!isGroupSelectionMode && !$loadingCells.has(cellKey) ? handleClick : undefined}
+    on:keydown={!isGroupSelectionMode && !$loadingCells.has(cellKey) ? handleKeyDown : undefined}
+    on:focus={!isGroupSelectionMode && !$loadingCells.has(cellKey) ? handleMouseEnter : undefined}
+    on:blur={!isGroupSelectionMode && !$loadingCells.has(cellKey) ? handleBlur : undefined}
+    on:mouseenter={!isGroupSelectionMode && !$loadingCells.has(cellKey) ? () => setHoveredCol(col) : undefined}
+    on:mouseleave={!isGroupSelectionMode && !$loadingCells.has(cellKey) ? () => setHoveredCol(null) : undefined}
+    style:cursor={isGroupSelectionMode || $loadingCells.has(cellKey) ? 'not-allowed' : undefined}
+    aria-disabled={$loadingCells.has(cellKey) ? 'true' : undefined}
   >
   {#if isTopCell && hoveredCol.value === col}
     <div class={cn(
@@ -338,9 +350,9 @@
       on:blur={handleBlur}
       on:click|stopPropagation
     />
-  {:else if (state === CELL_STATES.EMPTY || (state === CELL_STATES.HOVER && text === '')) && !$selectedCells.has(cellKey)}
+  {:else if ($loadingCells.has(cellKey) || state === CELL_STATES.EMPTY || (state === CELL_STATES.HOVER && text === '')) && !$selectedCells.has(cellKey)}
     <span class="w-full overflow-hidden text-ellipsis whitespace-nowrap leading-[var(--cell-height)] text-center">---</span>
-  {:else if state !== CELL_STATES.EMPTY && state !== 'group-highlight' && !(state === CELL_STATES.HOVER && text === '')}
+  {:else if state !== CELL_STATES.EMPTY && state !== 'group-highlight' && !$loadingCells.has(cellKey) && !(state === CELL_STATES.HOVER && text === '')}
     <span class="w-full overflow-hidden text-ellipsis whitespace-nowrap leading-[var(--cell-height)] text-left">{text}</span>
   {/if}
   </div>
