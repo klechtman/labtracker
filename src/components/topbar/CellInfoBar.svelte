@@ -1,6 +1,6 @@
 <script>
   import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedCellData, isAnyCellEditing } from '../../stores/tableStore';
-  import { getStoreByCellKey, parseCellKey, triggerAnimation } from '../../utils/cellUtils';
+  import { getStoreByCellKey, parseCellKey, triggerAnimation, triggerActionAnimation } from '../../utils/cellUtils';
   import { GROUP_COLOR_HEX } from '../../constants';
   import { CELL_STATES } from '../../constants';
   import Button from '../common/Button.svelte';
@@ -10,9 +10,12 @@
   import unlink from '../icons/unlink.svelte';
   import erase from '../icons/erase.svelte';
   import X from '../icons/X.svelte';
+  import undo from '../icons/undo.svelte';
 
   let cellData = {};
   let cellKey = null;
+  let originalValue = null;
+  let lastValue = '';
 
   // This block will re-run whenever the selection or any table store changes
   $: {
@@ -29,15 +32,44 @@
     }
   }
 
+  $: if (cellKey && originalValue === null) {
+    // Track original value when a cell is selected for editing
+    const store = getStoreByCellKey(cellKey);
+    if (store) {
+      const cell = store.get(cellKey) || {};
+      originalValue = cell.text;
+      lastValue = cell.text || '';
+    }
+  }
+  $: if (!cellKey && originalValue !== null) {
+    originalValue = null;
+    lastValue = '';
+  }
+
   function handleInput(event) {
     if ($isLinkMode || !cellKey) return;
     const newValue = event.target.value;
     const store = getStoreByCellKey(cellKey);
     if (!store) return;
+    // If cell is being emptied and wasn't empty before, show toast
+    if (newValue.trim() === '' && lastValue && lastValue.trim() !== '' && originalValue && originalValue.trim() !== '') {
+      const undoData = { cellKey, store, prevText: originalValue };
+      toastStore.add({
+        icon: undo,
+        color: 'red',
+        text: getCellPosition(cellKey) + ' is now empty',
+        undoAction: (data) => {
+          const { cellKey, store, prevText } = data;
+          store.updateCell(cellKey, { text: prevText, state: prevText.trim() ? CELL_STATES.REGULAR : CELL_STATES.EMPTY });
+        },
+        undoData
+      });
+    }
     store.updateCell(cellKey, {
       text: newValue,
       state: newValue.trim() ? CELL_STATES.REGULAR : CELL_STATES.EMPTY
     });
+    lastValue = newValue;
   }
 
   function handleKeyDown(event) {
@@ -149,7 +181,7 @@
           });
         });
         // Trigger animation for all cells in the group
-        triggerAnimation(groupCells.map(({ key }) => key));
+        triggerActionAnimation(groupCells.map(({ key }) => key));
       } else {
         store.updateCell(cellKey, {
           ...cellData,
@@ -159,7 +191,7 @@
           state: CELL_STATES.REGULAR
         });
         // Trigger animation for the single cell
-        triggerAnimation([cellKey]);
+        triggerActionAnimation([cellKey]);
       }
       selectedCells.set(new Set());
     }

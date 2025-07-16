@@ -49,23 +49,10 @@ function createToastStore() {
           // Extract cell keys from undoData for animation
           const cellKeys = extractCellKeysFromUndoData(toast.undoData);
           
-          // Add cells to animation store
+          // Add cells to animation store using triggerAnimation
           if (cellKeys.length > 0) {
-            import('./tableStore').then(({ undoAffectedCells }) => {
-              undoAffectedCells.update(set => {
-                const newSet = new Set(set);
-                cellKeys.forEach(key => newSet.add(key));
-                return newSet;
-              });
-              
-              // Remove cells from animation store after 2 seconds
-              setTimeout(() => {
-                undoAffectedCells.update(set => {
-                  const newSet = new Set(set);
-                  cellKeys.forEach(key => newSet.delete(key));
-                  return newSet;
-                });
-              }, 2000);
+            import('../utils/cellUtils').then(({ triggerAnimation }) => {
+              triggerAnimation(cellKeys);
             });
           }
           

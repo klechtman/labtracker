@@ -2,11 +2,14 @@
   import { createEventDispatcher, getContext } from 'svelte';
   import { CELL_STATES, GROUP_COLOR_HEX } from '../../constants';
   import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup, isGroupMode, isAnyCellEditing, loadingCells, undoAffectedCells } from '../../stores/tableStore';
+  import { actionAffectedCells } from '../../stores/tableStore';
   import { hoveredGroup } from '../../stores/hoverStore';
   import { cn } from '../../lib/utils';
   import { updateCellName, getStoreByCellKey, getCellClass, getCellStyle, parseCellKey } from '../../utils/cellUtils';
   import { getTriangleColor, getTriangleClassAndStyle } from '../../constants/cellStyles';
   import Tooltip from '../common/Tooltip.svelte';
+  import { toastStore } from '../../stores/toastStore';
+  import undo from '../icons/undo.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -26,6 +29,7 @@
 
   $: isSelectedGroup = linked && $selectedGroup === groupName;
   $: isUndoAffected = $undoAffectedCells.has(cellKey);
+  $: isActionAffected = $actionAffectedCells && $actionAffectedCells.has(cellKey);
 
   // Make text reactive to store changes
   $: {
@@ -39,6 +43,7 @@
   let isEditing = false;
   let inputElement;
   let isBlurFromTopBar = false;
+  let originalValue = null;
 
   // Add a computed variable to lock down interaction if a group is selected
   $: isGroupSelectionMode = Boolean($selectedGroup) && !$isLinkMode;
@@ -75,6 +80,13 @@
     // When this cell stops editing, set the global state to false
     // The next cell that starts editing will set it back to true
     isAnyCellEditing.set(false);
+  }
+
+  $: if (isEditing && originalValue === null) {
+    originalValue = text;
+  }
+  $: if (!isEditing && originalValue !== null) {
+    originalValue = null;
   }
 
   // Enforce that outFridge can never be true when state is empty
@@ -201,6 +213,20 @@
     const newValue = event.target.value;
     const store = getStoreByCellKey(cellKey);
     if (!store) return;
+    // If cell is being emptied and wasn't empty before, show toast
+    if (newValue.trim() === '' && text.trim() !== '' && originalValue && originalValue.trim() !== '') {
+      const undoData = { cellKey, store, prevText: originalValue };
+      toastStore.add({
+        icon: undo,
+        color: 'red',
+        text: getFullCellName() + ' is now empty',
+        undoAction: (data) => {
+          const { cellKey, store, prevText } = data;
+          store.updateCell(cellKey, { text: prevText, state: prevText.trim() ? CELL_STATES.REGULAR : CELL_STATES.EMPTY });
+        },
+        undoData
+      });
+    }
     store.updateCell(cellKey, {
       text: newValue,
       state: newValue.trim() ? CELL_STATES.REGULAR : CELL_STATES.EMPTY
@@ -311,7 +337,8 @@
     class={cn(
       "relative w-16 h-16 border border-slate-300 flex items-center justify-center cursor-pointer select-none",
       cellClass,
-      isUndoAffected ? "undo-animation" : ""
+      isUndoAffected ? "undo-animation" : "",
+      isActionAffected ? "action-animation" : ""
     )}
     data-cell-key={cellKey}
     style={cellStyle}
@@ -366,6 +393,24 @@
   }
   
   @keyframes undoFadeOut {
+    0% {
+      background-color: #e0f2fe;
+      border-color: #7dd3fc;
+      font-size: inherit;
+      line-height: inherit;
+    }
+    100% {
+      background-color: white;
+      border-color: #cbd5e1;
+      font-size: inherit;
+      line-height: inherit;
+    }
+  }
+
+  .action-animation {
+    animation: actionFadeOut 2s ease-out;
+  }
+  @keyframes actionFadeOut {
     0% {
       background-color: #e0f2fe;
       border-color: #7dd3fc;

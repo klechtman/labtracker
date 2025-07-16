@@ -7,7 +7,7 @@
   import Modal from '../common/Modal.svelte';
   import GroupInput from '../common/GroupInput.svelte';
   import { toastStore } from '../../stores/toastStore';
-  import { triggerAnimation } from '../../utils/cellUtils';
+  import { triggerAnimation, triggerActionAnimation } from '../../utils/cellUtils';
 
   // Add mobile prop to conditionally hide "Groups:" text
   export let mobile = false;
@@ -110,7 +110,7 @@
         );
         
         // Trigger animation for affected cells
-        triggerAnimation(affectedCells);
+        triggerActionAnimation(affectedCells);
         
         // Show toast with undo functionality
         toastStore.add({
@@ -162,7 +162,7 @@
         );
         
         // Trigger animation for affected cells
-        triggerAnimation(affectedCells);
+        triggerActionAnimation(affectedCells);
         
         // Show toast with undo functionality
         toastStore.add({

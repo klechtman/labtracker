@@ -4,6 +4,8 @@ import { leftTableStore, middleTableStore, mainTableStore, undoAffectedCells } f
 import { CELL_BASE_CLASS, CELL_PADDING, CELL_STYLE_MAP } from '../constants/cellStyles';
 
 // Shared animation trigger function
+const animationTimeouts = {};
+const actionAnimationTimeouts = {};
 export function triggerAnimation(cellKeys) {
   if (cellKeys.length > 0) {
     undoAffectedCells.update(set => {
@@ -12,14 +14,57 @@ export function triggerAnimation(cellKeys) {
       return newSet;
     });
     
-    // Remove cells from animation store after 2 seconds
-    setTimeout(() => {
-      undoAffectedCells.update(set => {
-        const newSet = new Set(set);
-        cellKeys.forEach(key => newSet.delete(key));
-        return newSet;
-      });
-    }, 2000);
+    cellKeys.forEach(key => {
+      // If there's an existing timeout for this cell, clear it
+      if (animationTimeouts[key]) {
+        clearTimeout(animationTimeouts[key]);
+      }
+      // Clear any existing action animation timeout for this cell
+      if (actionAnimationTimeouts[key]) {
+        clearTimeout(actionAnimationTimeouts[key]);
+        delete actionAnimationTimeouts[key];
+        // Remove from actionAffectedCells immediately
+        actionAffectedCells.update(set => {
+          const newSet = new Set(set);
+          newSet.delete(key);
+          return newSet;
+        });
+      }
+      // Set a new timeout for this cell
+      animationTimeouts[key] = setTimeout(() => {
+        undoAffectedCells.update(set => {
+          const newSet = new Set(set);
+          newSet.delete(key);
+          return newSet;
+        });
+        delete animationTimeouts[key];
+      }, 2000);
+    });
+  }
+}
+
+// Action performed animation trigger
+import { actionAffectedCells } from '../stores/tableStore';
+export function triggerActionAnimation(cellKeys) {
+  if (cellKeys.length > 0) {
+    actionAffectedCells.update(set => {
+      const newSet = new Set(set);
+      cellKeys.forEach(key => newSet.add(key));
+      return newSet;
+    });
+    cellKeys.forEach(key => {
+      if (actionAnimationTimeouts[key]) {
+        clearTimeout(actionAnimationTimeouts[key]);
+      }
+      actionAnimationTimeouts[key] = setTimeout(() => {
+        actionAffectedCells.update(set => {
+          const newSet = new Set(set);
+          newSet.delete(key);
+          return newSet;
+        });
+        delete actionAnimationTimeouts[key];
+      }, 2000);
+    });
   }
 }
 

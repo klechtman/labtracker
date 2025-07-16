@@ -5,7 +5,7 @@ import addlink from '../icons/addlink.svelte';
 import X from '../icons/X.svelte';
 import { groupColorsHex } from '../../constants';
 import { selectedCells, leftTableStore, middleTableStore, mainTableStore, isLinkMode, selectedGroup, selectedCellData, isGroupMode, groupOrderStore } from '../../stores/tableStore';
-import { getStoreByCellKey, triggerAnimation } from '../../utils/cellUtils';
+import { getStoreByCellKey, triggerAnimation, triggerActionAnimation } from '../../utils/cellUtils';
 import { CELL_STATES } from '../../constants';
 import InputField from '../common/InputField.svelte';
 import { toastStore } from '../../stores/toastStore';
@@ -180,7 +180,7 @@ function handleLinkCells(event) {
       selectedGroup.set(null);
       
       // Trigger animation for affected cells
-      triggerAnimation(cellKeysToAnimate);
+      triggerActionAnimation(cellKeysToAnimate);
       
       // Show toast with undo functionality
       toastStore.add({
@@ -259,7 +259,7 @@ function handleLinkCells(event) {
     // Don't clear selected group when linking is completed - keep it selected
     
     // Trigger animation for affected cells
-    triggerAnimation(cellKeysToAnimate);
+    triggerActionAnimation(cellKeysToAnimate);
     
     // Show toast with undo functionality
     toastStore.add({
@@ -347,7 +347,7 @@ function handleModalAccept() {
   // Don't clear selected group when linking is completed via modal - keep it selected
   
   // Trigger animation for affected cells
-  triggerAnimation(linkingCells);
+  triggerActionAnimation(linkingCells);
   
   // Show toast with undo functionality
   toastStore.add({

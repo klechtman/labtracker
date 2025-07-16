@@ -91,6 +91,8 @@ export const loadingCells = writable(new Set());
 
 // Store for tracking cells affected by undo actions (for animation)
 export const undoAffectedCells = writable(new Set());
+// Store for tracking cells affected by action performed (for animation)
+export const actionAffectedCells = writable(new Set());
 
 // Svelte 5: cellGroups as a function to be used in Svelte components
 export function getCellGroups(left, middle, main) {
