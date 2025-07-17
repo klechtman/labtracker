@@ -3,9 +3,10 @@
   import { leftTableStore, middleTableStore, mainTableStore, getCellGroups, selectedGroup, isLinkMode, isGroupMode, selectedCells } from '../../stores/tableStore';
   import Button from '../common/Button.svelte';
   import unlink from '../icons/unlink.svelte';
-  import erase from '../icons/erase.svelte';
+  import trash from '../icons/trash.svelte';
   import Modal from '../common/Modal.svelte';
   import GroupInput from '../common/GroupInput.svelte';
+  import Tooltip from '../common/Tooltip.svelte';
   import { toastStore } from '../../stores/toastStore';
   import { triggerAnimation, triggerActionAnimation } from '../../utils/cellUtils';
 
@@ -166,9 +167,9 @@
         
         // Show toast with undo functionality
         toastStore.add({
-          icon: erase,
+          icon: trash,
           color: 'red',
-          text: `Deleted group "${groupName}"`,
+          text: `Discarded group "${groupName}"`,
           duration: 4000,
           undoAction: undoDeleteGroup,
           undoData: { originalStates, groupName }
@@ -224,7 +225,7 @@
     
     // Show confirmation toast
     toastStore.add({
-      icon: erase,
+      icon: trash,
       color: 'emerald',
       text: `Restored group "${groupName}"`,
       duration: 2000
@@ -248,29 +249,33 @@
     on:select={handleSelect}
     on:deselect={handleDeselect}
   />
-  <Button 
-    icon={unlink} 
-    color="amber"
-    disabled={!$selectedGroup || $isLinkMode}
-    on:click={() => { groupActionType = 'unlink'; showGroupActionModal = true; }}
-  />
-  <Button 
-    icon={erase} 
-    color="red"
-    disabled={!$selectedGroup || $isLinkMode}
-    on:click={() => { groupActionType = 'delete'; showGroupActionModal = true; }}
-  />
+  <Tooltip text="Unlink group" disabled={!$selectedGroup || $isLinkMode}>
+    <Button 
+      icon={unlink} 
+      color="amber"
+      disabled={!$selectedGroup || $isLinkMode}
+      on:click={() => { groupActionType = 'unlink'; showGroupActionModal = true; }}
+    />
+  </Tooltip>
+  <Tooltip text="Discard group" disabled={!$selectedGroup || $isLinkMode}>
+    <Button 
+      icon={trash} 
+      color="red"
+      disabled={!$selectedGroup || $isLinkMode}
+      on:click={() => { groupActionType = 'delete'; showGroupActionModal = true; }}
+    />
+  </Tooltip>
 </div>
 
 {#if showGroupActionModal}
   <Modal
-    icon={groupActionType === 'unlink' ? unlink : erase}
+    icon={groupActionType === 'unlink' ? unlink : trash}
     color={groupActionType === 'unlink' ? 'amber' : 'red'}
     cancelText="Cancel"
-    acceptText={groupActionType === 'unlink' ? 'Unlink' : 'Delete'}
+    acceptText={groupActionType === 'unlink' ? 'Unlink' : 'Discard'}
     acceptColor={groupActionType === 'unlink' ? 'amber' : 'red'}
     cancelIcon={X}
-    acceptIcon={groupActionType === 'unlink' ? unlink : erase}
+    acceptIcon={groupActionType === 'unlink' ? unlink : trash}
     on:cancel={() => { showGroupActionModal = false; groupActionType = null; }}
     on:accept={handleGroupAction}
   >
@@ -278,7 +283,7 @@
       {#if groupActionType === 'unlink'}
         Are you sure you want to unlink this group?
       {:else if groupActionType === 'delete'}
-        Are you sure you want to delete this group?
+        Are you sure you want to discard this group?
       {/if}
     </div>
   </Modal>

@@ -10,6 +10,7 @@
   import Tooltip from '../common/Tooltip.svelte';
   import { toastStore } from '../../stores/toastStore';
   import undo from '../icons/undo.svelte';
+  import erase from '../icons/erase.svelte';
 
   const dispatch = createEventDispatcher();
 
@@ -217,7 +218,7 @@
     if (newValue.trim() === '' && text.trim() !== '' && originalValue && originalValue.trim() !== '') {
       const undoData = { cellKey, store, prevText: originalValue };
       toastStore.add({
-        icon: undo,
+        icon: erase,
         color: 'red',
         text: getFullCellName() + ' is now empty',
         undoAction: (data) => {

@@ -5,11 +5,9 @@
   import { CELL_STATES } from '../../constants';
   import { getStoreByCellKey } from '../../utils/cellUtils';
   import { getAllRenderedCellKeys } from '../../utils/populateData';
-  import Toast from '../common/toast.svelte';
   import check from '../icons/check.svelte';
   import X from '../icons/X.svelte';
 
-  let showToast = false;
 
   // Function to clear localStorage and reload the app
   function handleClearData() {
@@ -33,20 +31,6 @@
     loadingCells.set(new Set());
   }
 
-  // Function to show toast
-  function handleShowToast() {
-    showToast = true;
-  }
-
-  // Function to handle toast actions
-  function handleToastCancel() {
-    showToast = false;
-  }
-
-  function handleToastAccept() {
-    showToast = false;
-    // You can add any action here when the toast is accepted
-  }
 </script>
 
 <style>
@@ -81,24 +65,5 @@
 
 <div class="floating-bar">
   <button on:click={handlePopulateData}>Populate Data</button>
-  <button on:click={handleShowToast}>Show Toast</button>
   <button on:click={handleClearData}>Clear Data</button>
 </div>
-
-{#if showToast}
-  <Toast
-    icon={check}
-    color="emerald"
-    cancelText="Cancel"
-    acceptText="Accept"
-    cancelIcon={X}
-    acceptIcon={check}
-    on:cancel={handleToastCancel}
-    on:accept={handleToastAccept}
-  >
-    <div>
-      <p class="text-lg font-semibold mb-2">Toast Component Demo</p>
-      <p class="text-sm text-gray-600">This is your new toast component in action!</p>
-    </div>
-  </Toast>
-{/if} 

@@ -42,12 +42,12 @@ export const CELL_STYLE_MAP = {
   empty: ['bg-white', 'text-slate-400', 'border-slate-300'],
   regular: ['bg-white', 'text-slate-700', 'border-slate-300'],
   hover: ['bg-white', 'text-slate-900', 'border-sky-600', 'hover:bg-sky-100',],
-  selected: ['font-bold', 'border-slate-700'],
+  selected: ['font-bold', 'border-sky-600', 'bg-sky-200', 'hover:bg-sky-100',],
   outFridge: ['bg-slate-100', 'border-dashed', 'border-slate-700', 'italic', 'text-slate-500', 'hover:bg-sky-100'],
   disabled: ['border-slate-200', 'text-slate-200','cursor-not-allowed'],
   selectedEmpty: ['bg-white', 'border-slate-700'],
   hoverEmpty: ['hover:bg-sky-100'],
-  editing: ['bg-sky-50', 'border-sky-400', 'ring-2', 'ring-sky-200'],
+  editing: ['bg-sky-50', 'border-sky-400', 'ring-2', 'ring-sky-200', 'hover:bg-sky-100'],
   loading: ['text-slate-400', 'border-slate-300', 'loading-cell'],
 
   // Grouped cell styles (for any cell in a group)

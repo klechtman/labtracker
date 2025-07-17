@@ -5,8 +5,9 @@
   import { CELL_STATES } from '../../constants';
   import Button from '../common/Button.svelte';
   import InputField from '../common/InputField.svelte';
+  import Tooltip from '../common/Tooltip.svelte';
   import { toastStore } from '../../stores/toastStore';
-  import incubator from '../icons/incubator.svelte';
+  import outfridge from '../icons/outfridge.svelte';
   import unlink from '../icons/unlink.svelte';
   import erase from '../icons/erase.svelte';
   import X from '../icons/X.svelte';
@@ -20,7 +21,8 @@
   // This block will re-run whenever the selection or any table store changes
   $: {
     const selected = Array.from($selectedCells || []);
-    cellKey = selected.length > 0 ? selected[0] : null;
+    // In link mode, don't show any selected cell in the info bar
+    cellKey = ($isLinkMode || selected.length === 0) ? null : selected[0];
     if (cellKey) {
       let storeData;
       if (cellKey.startsWith('left')) storeData = $leftTableStore;
@@ -55,7 +57,7 @@
     if (newValue.trim() === '' && lastValue && lastValue.trim() !== '' && originalValue && originalValue.trim() !== '') {
       const undoData = { cellKey, store, prevText: originalValue };
       toastStore.add({
-        icon: undo,
+        icon: erase,
         color: 'red',
         text: getCellPosition(cellKey) + ' is now empty',
         undoAction: (data) => {
@@ -226,8 +228,8 @@
         : `${cellData.text} has been returned`;
       
       toastStore.add({
-        icon: incubator,
-        color: 'purple',
+        icon: outfridge,
+        color: 'sky',
         text: toastText,
         undoAction: undoOutFridge,
         undoData: originalState
@@ -254,8 +256,8 @@
       : `${currentCell.text} has been returned`;
     
     toastStore.add({
-      icon: incubator,
-      color: 'purple',
+              icon: outfridge,
+      color: 'sky',
       text: undoText,
       duration: 2000
     });
@@ -281,6 +283,9 @@
 
   $: canFridge = $selectedCellData && $selectedCellData.text && $selectedCellData.text.trim();
   $: canUnlink = $selectedCellData && $selectedCellData.linked;
+  
+  // Tooltip text for purple button
+  $: purpleButtonTooltip = $selectedCellData && $selectedCellData.outFridge ? "Return plate" : "Take plate out";
 </script>
 
 <div class="grid grid-flow-col items-end gap-2">
@@ -306,17 +311,21 @@
       on:keydown={handleKeyDown}
       extraClasses="w-[220px] min-w-[220px]"
     />
-    <Button 
-      icon={incubator} 
-      color="purple" 
-      on:click={handleToggleFridge} 
-      disabled={!canFridge || $isLinkMode}
-    />
-    <Button 
-      icon={unlink} 
-      color="amber" 
-      on:click={handleUnlink}
-      disabled={!canUnlink || $isLinkMode}
-    />
+    <Tooltip text={purpleButtonTooltip} disabled={!canFridge || $isLinkMode}>
+      <Button 
+        icon={outfridge} 
+        color="sky" 
+        on:click={handleToggleFridge} 
+        disabled={!canFridge || $isLinkMode}
+      />
+    </Tooltip>
+    <Tooltip text="Unlink plate from group" disabled={!canUnlink || $isLinkMode}>
+      <Button 
+        icon={unlink} 
+        color="amber" 
+        on:click={handleUnlink}
+        disabled={!canUnlink || $isLinkMode}
+      />
+    </Tooltip>
   </div>
 </div>

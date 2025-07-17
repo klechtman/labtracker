@@ -29,7 +29,7 @@
       <slot />
     </div>
     <div class="modal-actions">
-      <Button color="sky" icon={cancelIcon} iconClass="w-4 h-4" on:click={() => dispatch('cancel')}>
+      <Button color="slate" icon={cancelIcon} iconClass="w-4 h-4" on:click={() => dispatch('cancel')}>
         {cancelText}
       </Button>
       <Button color={acceptBtnColor} icon={acceptIcon} iconClass="w-4 h-4" on:click={() => dispatch('accept')} disabled={disabled}>
